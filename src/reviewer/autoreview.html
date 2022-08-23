@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title data-i18n="title">Chinese Wikipedia WikiProject Articles for creation - Automatic Review System</title>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.min.js"></script>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.fallbacks.min.js"></script>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.messagestore.min.js"></script>
+		<script>
+			$(function () {
+				$.i18n({
+					locale: window.navigator.language.toLowerCase()
+				}).load("./autoreview-i18n.json").then(function(){
+					$("[data-i18n]").i18n();
+				});
+				$("form#autoreview").on("submit", function (event) {
+					event.preventDefault();
+					const title = String($("input[name=\"title\"]").val() || "").trim();
+					const pageid = String($("input[name=\"pageid\"]").val() || "").trim();
+					const revid = String($("input[name=\"revid\"]").val() || "").trim();
+					if (!title && !pageid && !revid) {
+						alert($.i18n("autoreview-empty-warning"));
+						return;
+					}
+					$.getJSON("/api/autoreview?" + new URLSearchParams({
+						title: title,
+						pageid: pageid,
+						revid: revid
+					}).toString()).then(function (data) {
+						$("#result").text(JSON.stringify(data, null, '\t'));
+					}, function (err) {
+						$("#result").text(JSON.stringify(err.responseJSON, null, '\t'));
+					});
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="content">
+			<header>
+				<h1>
+					<a href="https://zhwp-afc-bot.toolforge.org/reviewer/autoreview.html">
+						<span data-i18n="projectName">Chinese Wikipedia WikiProject Articles for creation</span>
+						<strong data-i18n="serverName">Automatic Review System</strong>
+					</a>
+				</h1>
+			</header>
+			<main>
+				<p data-i18n="info1">This is an automated review system that finds potential problems in drafts or articles.</p>
+				<p data-i18n="info2">Please note: this automated review system is still flawed, it may misjudge, or it may not detect things. This tool is for reference only, please do not use this result to judge the truth of this article.</p>
+				<form id="autoreview">
+					<table>
+						<tbody>
+							<tr>
+								<td id="cv-col1" data-i18n="autoreview-title">Title</td>
+								<td id="cv-col2">
+									<input type="text" name="title" />
+								</td>
+								<td id="cv-col3" data-i18n="autoreview-pageid">or Page ID</td>
+								<td id="cv-col4">
+									<input type="text" name="pageid" />
+								</td>
+								<td id="cv-col5" data-i18n="autoreview-revid">or Revision ID</td>
+								<td id="cv-col6">
+									<input type="text" name="revid" />
+								</td>
+							</tr>
+							<tr>
+								<td colspan="4">
+									<button type="submit" data-i18n="autoreview-submit">Submit</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</main>
+		</div>
+		<div>
+			<span data-i18n="autoreview-result">Result:</span>
+			<pre id="result"></pre>
+		</div>
+		<footer>
+			<ul>
+				<li>
+					Maintained by
+					<a href="https://zh.wikipedia.org/wiki/User:SunAfterRain">SunAfterRain</a>
+				</li>
+				<li><a href="/api/autoreview">API</a></li>
+				<li><a href="https://github.com/WPAFC-zhwiki/zhwp-afc-bot.toolforge.org">Source code</a></li>
+			</ul>
+		</footer>
+	</body>
+</html>

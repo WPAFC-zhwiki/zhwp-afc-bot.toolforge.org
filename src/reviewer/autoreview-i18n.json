@@ -1,0 +1,47 @@
+{
+	"@metadata": {
+		"authors": [
+			"sunafterrainwm"
+		],
+		"last-updated": "2022-08-23"
+	},
+	"en": {
+		"title": "Chinese Wikipedia WikiProject Articles for creation - Automatic Review System",
+		"projectName": "Chinese Wikipedia WikiProject Articles for creation",
+		"serverName": "Automatic Review System",
+		"info1": "This is an automated review system that finds potential problems in drafts or articles.",
+		"info2": "Please note: this automated review system is still flawed, it may misjudge, or it may not detect things. This tool is for reference only, please do not use this result to judge the truth of this article.",
+		"autoreview-title": "Title",
+		"autoreview-pageid": "or Page ID",
+		"autoreview-revid": "or Reversion ID",
+		"autoreview-submit": "Submit",
+		"autoreview-empty-warning": "You have not filled in anything!",
+		"autoreview-result": "Result:"
+	},
+	"zh-hans": {
+		"title": "中文维基百科创建条目专题—自动审查系统",
+		"projectName": "中文维基百科创建条目专题",
+		"serverName": "自动审查系统",
+		"info1": "本自动审查系统可以找出草稿或条目中的可能潜在问题。",
+		"info2": "请注意：这个自动审查系统还是有瑕疵，可能会有误判，也有可能没检测出东西。此工具仅供参考，请勿以此结果判定该篇文章的真实情况。",
+		"autoreview-title": "标题",
+		"autoreview-pageid": "或页面ID",
+		"autoreview-revid": "或修订版本",
+		"autoreview-submit": "提交",
+		"autoreview-empty-warning": "你没有填入任何东西！",
+		"autoreview-result": "结果："
+	},
+	"zh-hant": {
+		"title": "中文維基百科建立條目專題—自動審查系統",
+		"projectName": "中文維基百科建立條目專題",
+		"serverName": "自動審查系統",
+		"info1": "本自動審查系統可以找出草稿或條目中的可能潛在問題。",
+		"info2": "請注意：這個自動審查系統還是有瑕疵，可能會有誤判，也有可能沒檢測出東西。此工具僅供參考，請勿以此結果判定該篇文章的真實情況。",
+		"autoreview-title": "標題",
+		"autoreview-pageid": "或頁面ID",
+		"autoreview-revid": "或修訂版本",
+		"autoreview-submit": "提交",
+		"autoreview-empty-warning": "你沒有填入任何東西！",
+		"autoreview-result": "結果："
+	}
+}
