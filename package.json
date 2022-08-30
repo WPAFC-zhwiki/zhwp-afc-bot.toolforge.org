@@ -7,13 +7,13 @@
 		"start": "node src/server.js",
 		"test": "pnpm run build && pnpm run dev",
 		"build": "tsc",
-		"dev": "ts-node src/server.ts",
+		"dev": "ts-node src/server.ts --preferTsExts",
 		"toolforge:init": "pnpm run toolforge:install && pnpm run toolforge:build && pnpm run toolforge:start",
 		"toolforge:start": "webservice --backend=kubernetes node16 start",
 		"toolforge:stop": "webservice --backend=kubernetes node16 stop",
 		"toolforge:restart": "webservice --backend=kubernetes node16 restart",
 		"toolforge:shell": "webservice --backend=kubernetes node16 shell",
-		"toolforge:install": "$NVM_DIR/nvm-exec pnpm install --no-color --frozen-lockfile --prefer-frozen-lockfile --prefer-offline",
+		"toolforge:install": "$NVM_DIR/nvm-exec pnpm install --no-color --frozen-lockfile --prefer-offline",
 		"toolforge:develop": "pnpm run toolforge:install && pnpm run build && pnpm run toolforge:restart"
 	},
 	"repository": "git+https://github.com/WPAFC-zhwiki/zhwp-afc-bot.toolforge.org.git",
@@ -26,6 +26,7 @@
 	"dependencies": {
 		"axios": "^0.27.2",
 		"cheerio": "1.0.0-rc.12",
+		"chokidar": "^3.5.3",
 		"dotenv": "^16.0.1",
 		"ejs": "^3.1.8",
 		"express": "^4.18.1",
@@ -46,6 +47,7 @@
 		"eslint-config-wikimedia": "^0.23.0",
 		"eslint-import-resolver-typescript": "^3.4.2",
 		"eslint-plugin-import": "^2.26.0",
+		"ts-node": "^10.9.1",
 		"types-mediawiki": "^1.2.0",
 		"typescript": "^4.7.4"
 	},

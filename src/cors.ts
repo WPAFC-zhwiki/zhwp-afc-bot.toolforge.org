@@ -1,6 +1,6 @@
 import express = require( 'express' );
 
-export default function ( req: express.Request, res: express.Response, next: () => void ) {
+export default function ( req: express.Request, res: express.Response, next: express.NextFunction ) {
 	const reqHeaderOrigin = req.headers.origin;
 	const reqParamsOrigin = req.query.origin;
 
@@ -11,7 +11,7 @@ export default function ( req: express.Request, res: express.Response, next: () 
 	} else {
 		res.setHeader( 'Access-Control-Allow-Origin', reqParamsOrigin );
 		res.setHeader( 'Access-Control-Allow-Methods', 'GET, POST' );
-		res.setHeader( 'Access-Control-Allow-Headers', 'X-Requested-With,content-type' );
+		res.setHeader( 'Access-Control-Allow-Headers', 'Content-Type' );
 		next();
 	}
 }

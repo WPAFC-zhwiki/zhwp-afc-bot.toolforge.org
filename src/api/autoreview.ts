@@ -227,22 +227,25 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		}
 		try {
 			res.status( code );
-			res.setHeader( 'Cache-Control', 'max-age=172800, must-revalidate' );
+			if ( code < 400 ) {
+				res.setHeader( 'Cache-Control', 'max-age=172800, must-revalidate' );
+			}
 			res.jsonp( json );
 			res.end();
 		} finally {
 			abortController.abort();
-			clearTimeout( timeout );
+			req.clearTimeout();
 			abortController = null;
 		}
 	}
 
-	const timeout = setTimeout( function () {
-		doOutput( 500, {
-			statue: 500,
+	req.on( 'timeout', function () {
+		doOutput( 503, {
+			statue: 503,
 			error: 'Timeout.'
 		} );
-	}, 60000 );
+	} );
+	res.hasTimeoutResponse = true;
 
 	const query = new URLSearchParams( Object.entries( req.query ) as string[][] );
 	const requestParam: ApiQueryRevisionsParams = {

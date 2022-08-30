@@ -9,7 +9,7 @@ export function voidFunction() {
 }
 
 // eslint-disable-next-line max-len
-function renderDefaultPage( code: number, req: express.Request, res: express.Response, args: Record<string, string> = {} ) {
+function renderDefaultPage( code: unknown, req: express.Request, res: express.Response, args: Record<string, string> = {} ) {
 	const pathname = new URL( req.originalUrl, 'https://zhwp-afc-bot.toolforge.org/' ).pathname;
 	res.render( 'status/' + String( code ), {
 		expressVersion: expressPackageJson.version,
@@ -61,6 +61,20 @@ export function methodNoAllow( req: express.Request, res: express.Response ) {
 export function internalServerError( req: express.Request, res: express.Response ) {
 	res.status( 500 );
 	renderDefaultPage( 500, req, res );
+	res.end();
+}
+
+export function unavailable( req: express.Request, res: express.Response ) {
+	res.status( 503 );
+	renderDefaultPage( 503, req, res );
+	res.setHeader( 'Retry-After', 120 );
+	res.end();
+}
+
+export function timeOut( req: express.Request, res: express.Response ) {
+	res.writeHead( 503, 'Request Timeout' );
+	renderDefaultPage( 'timeout', req, res );
+	res.setHeader( 'Retry-After', 600 );
 	res.end();
 }
 

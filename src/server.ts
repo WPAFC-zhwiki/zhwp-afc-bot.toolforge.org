@@ -1,6 +1,7 @@
 /* eslint-disable es-x/no-optional-chaining */
 /* eslint-disable es-x/no-dynamic-import */
 
+import chokidar = require( 'chokidar' );
 import dotenv from 'dotenv';
 import express = require( 'express' );
 import mime = require( 'mime' );
@@ -9,6 +10,7 @@ import path = require( 'path' );
 import serveIndex = require( 'serve-index' );
 import util = require( 'util' );
 import winston = require( 'winston' );
+import { REGISTER_INSTANCE } from 'ts-node';
 
 moduleAlias.addAliases( {
 	'@app': __dirname
@@ -23,6 +25,7 @@ mime.define( {
 } );
 
 import * as utils from '@app/utils';
+import timeout from '@app/timeout';
 import cors from '@app/cors';
 import icgRunIog from '@app/ICG-BOT/run.log';
 import icgRestart from '@app/ICG-BOT/restart';
@@ -60,34 +63,47 @@ express.response.status = function ( this: express.Response, code ) {
 	this.statusCode = code;
 	return this;
 };
+const oldSend = express.response.send;
+express.response.send = function ( this: express.Response, body?: unknown ) {
+	if ( this.writableEnded ) {
+		const error = new Error( 'Try to call express.response.send after writableEnded=true' );
+		Error.captureStackTrace( error );
+		winston.warn( util.inspect( error ) );
+		return this;
+	}
+	return oldSend.call( this, body );
+};
 
 const app = express();
 
 app.set( 'view engine', 'ejs' );
 
-app.use( function ( req, res, next ) {
-	res.on( 'finish', function () {
-		winston.debug(
-			util.format(
-				'%s - %s %s HTTP/%s %d',
-				req.headers.host,
-				req.method,
-				req.originalUrl,
-				req.httpVersion,
-				res.statusCode
-			)
-		);
-	} );
-	return next();
-} );
+app.use(
+	timeout,
+	function ( req, res, next ) {
+		res.on( 'finish', function () {
+			winston.debug(
+				util.format(
+					'%s - %s %s HTTP/%s %d',
+					req.headers.host,
+					req.method,
+					req.originalUrl,
+					req.httpVersion,
+					res.statusCode
+				)
+			);
+		} );
+		return next();
+	}
+);
 
 if ( process.env.FILES_PATH ) {
 	app.use( '/files', express.static( process.env.FILES_PATH ) );
 }
 
 if ( process.env.ICG_BOT_ROOT ) {
-	app.get( '/ICG-BOT', function ( _req, res ) {
-		res.location( 'https://github.com/WPAFC-zhwiki/ICG-BOT' );
+	app.get( '/ICG-BOT', function ( req, res ) {
+		utils.movedPermanently( 'https://github.com/WPAFC-zhwiki/ICG-BOT', req, res );
 	} );
 
 	app.get( [
@@ -233,6 +249,43 @@ app.use( [
 ], serveIndex( path.join( __dirname, 'reviewer' ) ), express.static( path.join( __dirname, 'reviewer' ) ) );
 
 app.use( utils.notFound );
+
+chokidar
+	.watch(
+		[
+			__dirname
+		], {
+			ignored: REGISTER_INSTANCE in process ? '*.js' : '*.ts',
+			ignoreInitial: true,
+			ignorePermissionErrors: true,
+			usePolling: true
+		}
+	)
+	.on( 'all', function ( event, pathName ) {
+		if ( pathName.match( /\.d\.ts$/ ) ) {
+			return;
+		}
+
+		winston.info( util.format( 'file %s: %s', event, pathName ) );
+		const relative = path.relative( __dirname, path.resolve( __dirname, pathName ) ).split( /[/\\]/ );
+		if ( relative.length !== 2 ) {
+			return;
+		}
+		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+		delete require.cache[ require.resolve( pathName ) ];
+		const cacheName = relative[ 1 ].replace( /\.[jt]s$/, '' );
+		switch ( relative[ 0 ] ) {
+			case 'api':
+				winston.info( util.format( 'reload api %s', cacheName ) );
+				apiCache.delete( cacheName );
+				break;
+
+			case 'shortcut':
+				winston.info( util.format( 'reload shortcut %s', cacheName ) );
+				shortcutCache.delete( cacheName );
+				break;
+		}
+	} );
 
 const server = app.listen( defaultPort, function () {
 	let address = server.address();
