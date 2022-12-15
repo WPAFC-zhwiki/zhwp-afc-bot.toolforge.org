@@ -193,7 +193,7 @@ app.use( [
 app.use( [
 	'/shortcut/:name'
 ], async function ( req, res ) {
-	const shortcutName: string = req.params.name.toLowerCase();
+	const shortcutName: string = req.params.name.replace( /\.n?[tj]s$/, '' ).toLowerCase();
 	let shortcut: utils.SubRoute | undefined | null;
 	if ( !shortcutName.match( /^[a-z\d-]+$/ ) ) {
 		return utils.forbidden( req, res );
