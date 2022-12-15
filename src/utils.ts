@@ -4,13 +4,23 @@ import expressPackageJson = require( 'express/package.json' );
 import util = require( 'util' );
 import winston = require( 'winston' );
 
+const origin = 'https://zhwp-afc-bot.toolforge.org';
+
 export function voidFunction() {
 	// ignore
 }
 
+export function mayEncodeAbsoluteURI( uri: string ) {
+	const url = new URL( uri, origin );
+	if ( url.origin === origin ) {
+		return url.href.slice( origin.length );
+	}
+	return url.href;
+}
+
 // eslint-disable-next-line max-len
 function renderDefaultPage( code: unknown, req: express.Request, res: express.Response, args: Record<string, string> = {} ) {
-	const pathname = new URL( req.originalUrl, 'https://zhwp-afc-bot.toolforge.org/' ).pathname;
+	const pathname = new URL( req.originalUrl, origin ).pathname;
 	res.render( 'status/' + String( code ), {
 		expressVersion: expressPackageJson.version,
 		method: req.method.toUpperCase(),
@@ -27,7 +37,7 @@ export function rewriteUrl( newPrefix: string ) {
 
 export function movedPermanently( location: string, req: express.Request, res: express.Response ) {
 	res.status( 301 );
-	res.set( 'Location', encodeURI( location ) );
+	res.set( 'Location', mayEncodeAbsoluteURI( location ) );
 	renderDefaultPage( 301, req, res, {
 		location
 	} );
