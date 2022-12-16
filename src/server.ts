@@ -1,6 +1,3 @@
-/* eslint-disable es-x/no-optional-chaining */
-/* eslint-disable es-x/no-dynamic-import */
-
 import chokidar = require( 'chokidar' );
 import dotenv from 'dotenv';
 import express = require( 'express' );

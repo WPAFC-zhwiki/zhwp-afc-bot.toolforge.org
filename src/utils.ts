@@ -1,4 +1,3 @@
-/* eslint-disable es-x/no-nullish-coalescing-operators */
 import express = require( 'express' );
 import expressPackageJson = require( 'express/package.json' );
 import util = require( 'util' );

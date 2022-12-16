@@ -7,7 +7,6 @@
 		"plugin:@typescript-eslint/recommended",
 		"wikimedia",
 		"wikimedia/jquery",
-		"wikimedia/server",
 		"wikimedia/node",
 		"wikimedia/language/es2021",
 		"plugin:import/recommended"
@@ -82,7 +81,7 @@
 			],
 			"parser": "@typescript-eslint/parser",
 			"parserOptions": {
-				"project": "tsconfig.json"
+				"project": "./tsconfig.json"
 			},
 			"rules": {
 				"indent": "off",

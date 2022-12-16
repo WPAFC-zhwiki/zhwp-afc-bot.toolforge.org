@@ -1,4 +1,3 @@
-/* eslint-disable es-x/no-nullish-coalescing-operators */
 import express = require( 'express' );
 import path = require( 'path' );
 import { execFile } from 'child_process';

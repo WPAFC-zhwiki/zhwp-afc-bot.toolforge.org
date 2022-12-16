@@ -1,6 +1,3 @@
-/* eslint-disable es-x/no-nullish-coalescing-operators */
-/* eslint-disable es-x/no-optional-catch-binding */
-/* eslint-disable es-x/no-optional-chaining */
 import cheerio = require( 'cheerio' );
 import express = require( 'express' );
 import util = require( 'util' );
