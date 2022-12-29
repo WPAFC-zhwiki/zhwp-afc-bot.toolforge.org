@@ -218,6 +218,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 	}
 	abortController = new AbortController();
 
+	let isRequestByPage = false;
 	function doOutput( code: number, json: unknown ) {
 		if ( !abortController ) {
 			return;
@@ -225,7 +226,10 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		try {
 			res.status( code );
 			if ( code < 400 ) {
-				res.setHeader( 'Cache-Control', 'max-age=172800, must-revalidate' );
+				res.setHeader(
+					'Cache-Control',
+					isRequestByPage ? 'max-age=172800, must-revalidate' : 'max-age=172800'
+				);
 			}
 			res.jsonp( json );
 			res.end();
@@ -270,6 +274,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			} else if ( Number.isNaN( +pageid ) || !Number.isInteger( +pageid ) || pageid.includes( '-' ) ) {
 				throw new Error( 'Pageid "' + pageid + '" invalid.' );
 			}
+			isRequestByPage = true;
 			requestParam.pageids = +pageid;
 			requestInfo = 'Pageid ' + String( requestParam.pageids );
 		} else if ( query.has( 'title' ) && query.get( 'title' ) ) {
@@ -281,6 +286,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			} catch ( e ) {
 				throw new Error( 'Title "' + title + '" invalid.' );
 			}
+			isRequestByPage = true;
 			requestParam.titles = mTitle.toText();
 			requestInfo = 'Title "' + requestParam.titles + '"';
 		} else {
