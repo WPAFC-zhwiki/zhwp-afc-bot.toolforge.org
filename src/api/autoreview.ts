@@ -192,7 +192,7 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		$parseHTML.find( 'pre' ).filter( function ( _i, ele ) {
 			const $parent: cheerio.Cheerio<cheerio.Element> = $( ele ).parent().eq( 0 );
 			// eslint-disable-next-line no-jquery/no-class-state
-			return $parent.hasClass( 'mw-highlight' );
+			return !$parent.hasClass( 'mw-highlight' );
 		} ).length
 	) {
 		issues.push( 'bad-indents' );
