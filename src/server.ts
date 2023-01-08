@@ -1,6 +1,7 @@
 import chokidar = require( 'chokidar' );
 import dotenv from 'dotenv';
 import express = require( 'express' );
+import helmet from 'helmet';
 import mime = require( 'mime' );
 import moduleAlias = require( 'module-alias' );
 import path = require( 'path' );
@@ -24,6 +25,7 @@ mime.define( {
 import * as utils from '@app/utils';
 import timeout from '@app/timeout';
 import cors from '@app/cors';
+import hsts from '@app/hsts';
 import icgRunIog from '@app/ICG-BOT/run.log';
 import icgRestart from '@app/ICG-BOT/restart';
 
@@ -77,6 +79,11 @@ app.set( 'view engine', 'ejs' );
 
 app.use(
 	timeout,
+	helmet( {
+		contentSecurityPolicy: false, // Toolforge wll add Content-Security-Policy-Report-Only automatically
+		hsts: false // define in hsts.ts
+	} ),
+	hsts,
 	function ( req, res, next ) {
 		res.on( 'finish', function () {
 			winston.debug(

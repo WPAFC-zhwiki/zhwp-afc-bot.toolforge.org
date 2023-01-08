@@ -12,6 +12,7 @@ export default function ( req: express.Request, res: express.Response, next: exp
 		res.setHeader( 'Access-Control-Allow-Origin', reqParamsOrigin );
 		res.setHeader( 'Access-Control-Allow-Methods', 'GET, POST' );
 		res.setHeader( 'Access-Control-Allow-Headers', 'Content-Type' );
+		res.setHeader( 'Vary', 'Origin' );
 		next();
 	}
 }

@@ -1,5 +1,7 @@
 import * as utils from '@app/utils';
 import express = require( 'express' );
+import util = require( 'util' );
+import winston = require( 'winston' );
 
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
@@ -20,6 +22,10 @@ export default function ( req: express.Request, res: express.Response, next: exp
 	req.isTimeOut = false;
 
 	const timeout = setTimeout( function () {
+		if ( res.writableEnded ) {
+			winston.warn( util.inspect( new Error( 'Unhandled timeout.' ) ) );
+			return;
+		}
 		req.emit( 'timeout' );
 		if ( !res.hasTimeoutResponse ) {
 			utils.timeOut( req, res );
