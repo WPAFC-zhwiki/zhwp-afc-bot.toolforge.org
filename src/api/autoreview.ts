@@ -290,7 +290,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			requestParam.titles = mTitle.toText();
 			requestInfo = 'Title "' + requestParam.titles + '"';
 		} else {
-			throw new Error( 'At least one of the parameters "oldid", "pageid" and "title" is required.' );
+			throw new Error( 'At least one of the parameters "revid", "pageid" and "title" is required.' );
 		}
 	} catch ( error ) {
 		doOutput( 400, {
