@@ -24,7 +24,7 @@
 		"url": "https://github.com/WPAFC-zhwiki/zhwp-afc-bot.toolforge.org/issues"
 	},
 	"homepage": "https://github.com/WPAFC-zhwiki/zhwp-afc-bot.toolforge.org#readme",
-	"packageManager": "pnpm@7.26.0",
+	"packageManager": "pnpm@7.26.2",
 	"dependencies": {
 		"axios": "^0.27.2",
 		"cheerio": "1.0.0-rc.12",
