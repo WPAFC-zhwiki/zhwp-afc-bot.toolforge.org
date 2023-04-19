@@ -242,7 +242,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 
 	req.on( 'timeout', function () {
 		doOutput( 503, {
-			statue: 503,
+			status: 503,
 			error: 'Timeout.'
 		} );
 	} );
@@ -294,7 +294,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		}
 	} catch ( error ) {
 		doOutput( 400, {
-			statue: 400,
+			status: 400,
 			error: error instanceof Error ? error.message : 'Parse request fail.'
 		} );
 		return;
@@ -313,14 +313,14 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			throw new Error( `${ requestInfo } isn't exist.` );
 		} else if ( rev.slots?.main.contentmodel !== 'wikitext' ) {
 			doOutput( 422, {
-				statue: 422,
+				status: 422,
 				error: `Can't autoreview content model "${ rev.slots?.main.contentmodel }".`
 			} );
 			return;
 		}
 		const parseHTML = await mwbot.parseTitle( page.title );
 		doOutput( 200, {
-			statue: 200,
+			status: 200,
 			apiVersion: 1,
 			result: {
 				title: page.title,
@@ -332,7 +332,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 	} catch ( error ) {
 		winston.error( util.inspect( error ) );
 		doOutput( 500, {
-			statue: 500,
+			status: 500,
 			error: error instanceof Error ? error.message : 'Request fail.'
 		} );
 	}
