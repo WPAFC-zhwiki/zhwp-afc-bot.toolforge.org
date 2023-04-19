@@ -311,10 +311,10 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		const rev = page?.revisions?.[ 0 ];
 		if ( !page || !rev ) {
 			throw new Error( `${ requestInfo } isn't exist.` );
-		} else if ( rev.contentmodel !== 'wikitext' ) {
+		} else if ( rev.slots?.main.contentmodel !== 'wikitext' ) {
 			doOutput( 422, {
 				statue: 422,
-				error: `Can't autoreview content model "${ rev.contentmodel }".`
+				error: `Can't autoreview content model "${ rev.slots?.main.contentmodel }".`
 			} );
 			return;
 		}
