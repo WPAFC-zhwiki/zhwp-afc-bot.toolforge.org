@@ -253,7 +253,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		action: 'query',
 		prop: 'revisions',
 		indexpageids: true,
-		rvprop: [ 'ids', 'content' ],
+		rvprop: [ 'ids', 'content', 'contentmodel' ],
 		rvslots: 'main'
 	};
 	let requestInfo;
@@ -311,10 +311,17 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		const rev = page?.revisions?.[ 0 ];
 		if ( !page || !rev ) {
 			throw new Error( `${ requestInfo } isn't exist.` );
+		} else if ( rev.contentmodel !== 'wikitext' ) {
+			doOutput( 422, {
+				statue: 422,
+				error: `Can't autoreview content model "${ rev.contentmodel }".`
+			} );
+			return;
 		}
 		const parseHTML = await mwbot.parseTitle( page.title );
 		doOutput( 200, {
 			statue: 200,
+			apiVersion: 1,
 			result: {
 				title: page.title,
 				pageid: pageid,
