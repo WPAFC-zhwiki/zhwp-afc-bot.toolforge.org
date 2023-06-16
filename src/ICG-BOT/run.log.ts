@@ -9,8 +9,7 @@ export default function ( req: express.Request, res: express.Response ) {
 
 	res.setHeader( 'Cache-Control', 'no-cache' );
 	res.setHeader( 'Content-Type', 'no-cache' );
-	res.type( 'text/plain' );
-	res.setDefaultEncoding( 'utf8' );
+	res.type( 'text/plain;charset=UTF-8' );
 	res.header( 'Content-Disposition', 'inline' );
 
 	execFile( 'tail', [
