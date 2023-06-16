@@ -49,6 +49,9 @@ devDependencies:
   '@types/express':
     specifier: ^4.17.13
     version: 4.17.13
+  '@types/express-serve-static-core':
+    specifier: ^4.17.35
+    version: 4.17.35
   '@types/mime':
     specifier: 1.3.2
     version: 1.3.2

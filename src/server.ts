@@ -118,7 +118,12 @@ if ( process.env.ICG_BOT_ROOT ) {
 	} );
 
 	if ( process.env.ICG_BOT_ERR_LOG ) {
-		app.get( '/ICG-BOT/err.log', utils.sendFile( process.env.ICG_BOT_ERR_LOG ) );
+		app.get( '/ICG-BOT/err.log', utils.sendFile( process.env.ICG_BOT_ERR_LOG, {
+			headers: {
+				'Content-Type': 'text/plain;charset=UTF-8',
+				'Content-Disposition': 'inline',
+			}
+		} ) );
 	}
 
 	app.get( '/ICG-BOT/restart', function ( req, res ) {

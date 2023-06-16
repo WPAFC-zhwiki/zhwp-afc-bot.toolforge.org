@@ -1,7 +1,10 @@
+import util = require( 'node:util' );
+
 import express = require( 'express' );
 import expressPackageJson = require( 'express/package.json' );
-import util = require( 'util' );
 import winston = require( 'winston' );
+
+import type { SendFileOptions } from 'express-serve-static-core';
 
 const origin = 'https://zhwp-afc-bot.toolforge.org';
 
@@ -87,10 +90,9 @@ export function timeOut( req: express.Request, res: express.Response ) {
 	res.end();
 }
 
-export interface SendFileOptions {
-	root?: string;
-	maxAge?: number;
-}
+export type {
+	SendFileOptions
+};
 
 export function sendFile( fileName: string, options: SendFileOptions = {} ) {
 	options.maxAge = options.maxAge ?? 86400;
