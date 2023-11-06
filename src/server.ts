@@ -257,6 +257,12 @@ app.use( [
 	'/reviewer'
 ], serveIndex( path.join( __dirname, 'reviewer' ) ), express.static( path.join( __dirname, 'reviewer' ) ) );
 
+// for test
+app.get( '/generate_204', function ( _req, res ) {
+	res.status( 204 );
+	res.end();
+} );
+
 app.use( utils.notFound );
 
 chokidar
