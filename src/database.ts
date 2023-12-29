@@ -65,7 +65,7 @@ export async function doReplicaQuery<R>( sql: string, values?: string[] ): Promi
 
 	if ( conn ) {
 		return new Promise<QueryResult<R>>( ( resolve, reject ) => {
-			conn.createQuery(
+			conn.query(
 				{
 					sql,
 					values
