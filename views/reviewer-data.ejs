@@ -7,7 +7,15 @@
 		<link rel="stylesheet" href="https://tools-static.wmflabs.org/zhwp-afc-bot/resource/jquery.dataTables.v1.13.8.css" integrity="sha512-r/xZinIkB3eI4aMD6FThHkGQog8Z3UNMwsjuWZFWcAmnnbCngXkACQQf9JgZegZZm58Y6MCSZIuyYWxqpY1qYg==" crossorigin="anonymous" referrerpolicy="no-referrer">
 	<body>
 		<h1>AfC review counts for zhwiki, last 28 days</h1>
-		<script>$( () => { $( '#reviewer-data' ).DataTable(); } );</script>
+		<script>
+$(() => {
+	$('#reviewer-data').DataTable({
+		order: [
+			[0, 'desc']
+		]
+	});
+});
+		</script>
 		<style>
 			table {
 				background-color: #f8f9fa;
