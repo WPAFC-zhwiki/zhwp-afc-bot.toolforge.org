@@ -2,33 +2,13 @@
 <html>
 	<head>
 		<title>AfC review counts for zhwiki, last 28 days | zhwp-afc-bot.toolforge.org</title>
-	</head>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/datatables.net/1.13.8/jquery.dataTables.min.js" integrity="sha512-TgxkAWzvZ5QHj09nGCAHIq2ynLQT1hSgJQZK25wWQwReBLNWEtMU5BqoaQiYPrjaB3OfPuCfVDQ7n2csnDR+SQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<link rel="stylesheet" href="https://tools-static.wmflabs.org/zhwp-afc-bot/resource/jquery.dataTables.v1.13.8.css" integrity="sha512-r/xZinIkB3eI4aMD6FThHkGQog8Z3UNMwsjuWZFWcAmnnbCngXkACQQf9JgZegZZm58Y6MCSZIuyYWxqpY1qYg==" crossorigin="anonymous" referrerpolicy="no-referrer">
 	<body>
 		<h1>AfC review counts for zhwiki, last 28 days</h1>
-		<style>
-.wikitable {
-	background-color: #f8f9fa;
-	color: #202122;
-	margin: 1em 0;
-	border: 1px solid #a2a9b1;
-	border-collapse: collapse
-}
-
-.wikitable > tr > th,.wikitable > tr > td,.wikitable > * > tr > th,.wikitable > * > tr > td {
-	border: 1px solid #a2a9b1;
-	padding: 0.2em 0.4em
-}
-
-.wikitable > tr > th,.wikitable > * > tr > th {
-	background-color: #eaecf0;
-	text-align: center
-}
-
-.wikitable > caption {
-	font-weight: bold
-}
-		</style>
-		<table class="wikitable">
+		<script>$( () => { $( '#reviewer-data' ).DataTable(); } );</script>
+		<table id="reviewer-data">
 			<tbody>
 				<tr>
 					<th>reviews</th>
@@ -40,7 +20,7 @@
 					<th>decline %</th>
 					<th>reject %</th>
 				</tr>
-				<% for (var reviewData = 0; i < reviewData.length; i++ ) { %>
+				<% for (var i = 0; i < reviewData.length; i++ ) { %>
 				<tr>
 					<td><%= reviewData[i].reviews %></td>
 					<td><%= reviewData[i].user %></td>
