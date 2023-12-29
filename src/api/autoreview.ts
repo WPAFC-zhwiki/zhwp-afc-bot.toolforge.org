@@ -7,7 +7,7 @@ import { ApiParams, ApiRevision, mwn, MwnTitle } from 'mwn';
 import { ApiQueryRevisionsParams } from 'mwn/build/api_params';
 import type { RawRequestParams } from 'mwn/build/core';
 
-import { methodNoAllow } from '@app/utils';
+import { getWithCacheAsync, methodNoAllow } from '@app/utils';
 
 const $ = cheerio.load( '' );
 
@@ -203,12 +203,13 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 interface ApiQueryRevisionsResponse {
 	query?: {
 		pageids?: number[];
-		pages?: Record<number, ApiPage> | ApiPage[];
+		pages?: ApiPage[];
 	};
 }
 
 interface ApiPage {
 	revisions?: ApiRevision[];
+	ns: number;
 	title: string;
 }
 
@@ -254,7 +255,8 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		prop: 'revisions',
 		indexpageids: true,
 		rvprop: [ 'ids', 'content', 'contentmodel' ],
-		rvslots: 'main'
+		rvslots: 'main',
+		formatversion: '2'
 	};
 	let requestInfo;
 	try {
@@ -263,7 +265,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			if ( revid.match( /[|,]/ ) ) {
 				throw new Error( 'Only allow one revision in a request.' );
 			} else if ( Number.isNaN( +revid ) || !Number.isInteger( +revid ) || revid.includes( '-' ) ) {
-				throw new Error( 'Revid "' + revid + '" is invalid.' );
+				throw new Error( `Revid "${ revid }" is invalid.` );
 			}
 			requestParam.revids = +revid;
 			requestInfo = 'Revid ' + String( requestParam.revids );
@@ -272,11 +274,11 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			if ( pageid.match( /[|,]/ ) ) {
 				throw new Error( 'Only allow one page in a request.' );
 			} else if ( Number.isNaN( +pageid ) || !Number.isInteger( +pageid ) || pageid.includes( '-' ) ) {
-				throw new Error( 'Pageid "' + pageid + '" invalid.' );
+				throw new Error( `Pageid "${ pageid }" invalid.` );
 			}
 			isRequestByPage = true;
 			requestParam.pageids = +pageid;
-			requestInfo = 'Pageid ' + String( requestParam.pageids );
+			requestInfo = `Pageid ${ String( requestParam.pageids ) }`;
 		} else if ( query.has( 'title' ) && query.get( 'title' ) ) {
 			const title = query.get( 'title' ) ?? '';
 			let mTitle: MwnTitle;
@@ -284,11 +286,11 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 				// eslint-disable-next-line new-cap
 				mTitle = new mwbot.title( title );
 			} catch ( e ) {
-				throw new Error( 'Title "' + title + '" invalid.' );
+				throw new Error( `Title "${ title }" invalid.` );
 			}
 			isRequestByPage = true;
 			requestParam.titles = mTitle.toText();
-			requestInfo = 'Title "' + requestParam.titles + '"';
+			requestInfo = `Title "${ requestParam.titles }"`;
 		} else {
 			throw new Error( 'At least one of the parameters "revid", "pageid" and "title" is required.' );
 		}
@@ -305,9 +307,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			throw new Error( 'Fail to get page info.' );
 		}
 		const pageid = apiQuery.pageids?.[ 0 ];
-		const page = Array.isArray( apiQuery.pages ) ?
-			apiQuery.pages[ 0 ] :
-			pageid ? apiQuery.pages?.[ pageid ] : null;
+		const page = apiQuery.pages?.[ 0 ];
 		const rev = page?.revisions?.[ 0 ];
 		if ( !page || !rev ) {
 			throw new Error( `${ requestInfo } isn't exist.` );
@@ -318,19 +318,35 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			} );
 			return;
 		}
-		const parseHTML = await mwbot.parseTitle( page.title );
-		doOutput( 200, {
-			status: 200,
-			apiVersion: 1,
-			result: {
-				title: page.title,
-				pageid: pageid,
-				oldid: rev.revid,
-				issues: autoReview( rev.slots?.main.content ?? '', $( $.parseHTML( parseHTML ) ) )
+		const issues = await getWithCacheAsync<string[]>(
+			`api/autoreview/issues/${ rev.revid }`,
+			5 * 60 * 1000,
+			async () => {
+				const parseHTML = await mwbot.parseTitle( page.title );
+				return autoReview( rev.slots?.main.content ?? '', $( $.parseHTML( parseHTML ) ) );
 			}
-		} );
+		);
+		if ( issues ) {
+			doOutput( 200, {
+				status: 200,
+				apiVersion: 1,
+				result: {
+					ns: page.ns,
+					title: page.title,
+					pageid: pageid,
+					oldid: rev.revid,
+					issues: issues
+				}
+			} );
+		} else {
+			winston.error( `[api/autoreview] getWithCacheAsync return ${ util.inspect( issues ) }.` );
+			doOutput( 502, {
+				status: 502,
+				error: 'Bad gateway.'
+			} );
+		}
 	} catch ( error ) {
-		winston.error( util.inspect( error ) );
+		winston.error( `[api/autoreview] ${ util.inspect( error ) }` );
 		doOutput( 500, {
 			status: 500,
 			error: error instanceof Error ? error.message : 'Request fail.'
