@@ -1,12 +1,14 @@
+import fs = require( 'node:fs' );
+import path = require( 'node:path' );
+import util = require( 'node:util' );
+
 import chokidar = require( 'chokidar' );
 import dotenv from 'dotenv';
 import express = require( 'express' );
 import helmet from 'helmet';
 import mime = require( 'mime' );
 import moduleAlias = require( 'module-alias' );
-import path = require( 'path' );
 import serveIndex = require( 'serve-index' );
-import util = require( 'util' );
 import winston = require( 'winston' );
 import { REGISTER_INSTANCE } from 'ts-node';
 
@@ -14,6 +16,7 @@ moduleAlias.addAliases( {
 	'@app': __dirname
 } );
 
+// eslint-disable-next-line import/no-named-as-default-member
 dotenv.config( {
 	path: path.join( __dirname, '..', '.env' )
 } );
@@ -53,6 +56,7 @@ winston.add( new winston.transports.Console( {
 winston.level = 'debug';
 
 const apiCache = new Map<string, utils.SubRoute | null>();
+const reviewerProgramCache = new Map<string, utils.SubRoute | null>();
 const shortcutCache = new Map<string, utils.SubRoute | null>();
 
 const defaultPort = process.env.PORT ? +process.env.PORT : null;
@@ -139,59 +143,11 @@ app.use( [
 	'/api/:name'
 ], cors, async function ( req, res ) {
 	const apiName: string = req.params.name.replace( /\.n?[tj]s$/, '' ).toLowerCase();
-	let api: utils.SubRoute | undefined | null;
 	if ( !apiName.match( /^[a-z\d-]+(\.json)?$/ ) ) {
 		return utils.forbidden( req, res );
 	}
-	if ( apiCache.has( apiName ) ) {
-		api = apiCache.get( apiName );
-		if ( api ) {
-			try {
-				return await api.onRequest( req, res );
-			} catch ( error ) {
-				winston.error( error );
-				return utils.internalServerError( req, res );
-			}
-		} else {
-			return utils.notFound( req, res );
-		}
-	}
 
-	let fullPath: string;
-	try {
-		fullPath = require.resolve( '@app/api/' + apiName );
-	} catch ( error ) {
-		apiCache.set( apiName, null );
-		return utils.notFound( req, res );
-	}
-
-	if ( req.query.raw ) {
-		return utils.sendFile( fullPath )( req, res );
-	} else if ( path.extname( apiName ) === '.json' ) {
-		api = {
-			onRequest: utils.sendFile( fullPath )
-		};
-	} else {
-		try {
-			api = await import( '@app/api/' + apiName ) as utils.SubRoute;
-			await api.init?.();
-		} catch ( error ) {
-			winston.error( util.inspect( error ) );
-			return utils.internalServerError( req, res );
-		}
-	}
-
-	apiCache.set( apiName, api );
-	try {
-		await api.onRequest( req, res );
-	} catch ( error ) {
-		winston.error( util.inspect( error ) );
-		utils.internalServerError( req, res );
-	} finally {
-		if ( !res.writableEnded ) {
-			res.end();
-		}
-	}
+	return utils.subRouteHandler( req, res, apiCache, apiName, 'api' );
 } );
 
 app.use( [
@@ -202,50 +158,11 @@ app.use( [
 	'/shortcut/:name'
 ], async function ( req, res ) {
 	const shortcutName: string = req.params.name.replace( /\.n?[tj]s$/, '' ).toLowerCase();
-	let shortcut: utils.SubRoute | undefined | null;
 	if ( !shortcutName.match( /^[a-z\d-]+$/ ) ) {
 		return utils.forbidden( req, res );
 	}
-	if ( shortcutCache.has( shortcutName ) ) {
-		shortcut = shortcutCache.get( shortcutName );
-		if ( shortcut ) {
-			try {
-				return await shortcut.onRequest( req, res );
-			} catch ( error ) {
-				winston.error( error );
-				return utils.internalServerError( req, res );
-			}
-		} else {
-			return utils.notFound( req, res );
-		}
-	}
 
-	try {
-		require.resolve( '@app/shortcut/' + shortcutName );
-	} catch ( error ) {
-		shortcutCache.set( shortcutName, null );
-		return utils.notFound( req, res );
-	}
-
-	try {
-		shortcut = await import( '@app/shortcut/' + shortcutName ) as utils.SubRoute;
-		await shortcut.init?.();
-	} catch ( error ) {
-		winston.error( util.inspect( error ) );
-		return utils.internalServerError( req, res );
-	}
-
-	shortcutCache.set( shortcutName, shortcut );
-	try {
-		await shortcut.onRequest( req, res );
-	} catch ( error ) {
-		winston.error( util.inspect( error ) );
-		utils.internalServerError( req, res );
-	} finally {
-		if ( !res.writableEnded ) {
-			res.end();
-		}
-	}
+	return utils.subRouteHandler( req, res, shortcutCache, shortcutName, 'shortcut' );
 } );
 
 app.use( [
@@ -253,8 +170,23 @@ app.use( [
 ], utils.rewriteUrl( '/reviewer' ) );
 
 app.use( [
-	'/reviewer'
-], serveIndex( path.join( __dirname, 'reviewer' ) ), express.static( path.join( __dirname, 'reviewer' ) ) );
+	'/reviewer/:path'
+], serveIndex( path.join( __dirname, 'reviewer' ) ), async function ( req, res, next ) {
+	const subPath: string = req.path.slice( '/reviewer/'.length );
+	if ( path.basename( subPath ).startsWith( '.' ) ) {
+		return utils.notFound( req, res );
+	}
+	if (
+		!subPath.match( /^[a-z\d-]+\.js$/ ) ||
+		!fs.existsSync( path.join( __dirname, 'reviewer', `.${ subPath }.js.nodejs-program` ) ) ||
+		new URL( req.url, utils.origin ).searchParams.has( 'raw' )
+	) {
+		return next();
+	}
+
+	const programName = subPath.slice( 0, -( '.js'.length ) );
+	return utils.subRouteHandler( req, res, reviewerProgramCache, programName, 'reviewer' );
+}, express.static( path.join( __dirname, 'reviewer' ) ) );
 
 // for test
 app.get( '/generate_204', function ( _req, res ) {
@@ -304,6 +236,12 @@ chokidar
 				winston.info( util.format( 'reload shortcut %s', cacheName ) );
 				await shortcutCache.get( cacheName )?.deinit?.();
 				shortcutCache.delete( cacheName );
+				break;
+
+			case 'reviewer':
+				winston.info( util.format( 'reload reviewer program %s', cacheName ) );
+				await reviewerProgramCache.get( cacheName )?.deinit?.();
+				reviewerProgramCache.delete( cacheName );
 				break;
 		}
 	} );

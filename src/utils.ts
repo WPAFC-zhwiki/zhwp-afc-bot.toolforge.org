@@ -7,11 +7,11 @@ import { Cache as MemoryCache } from 'memory-cache';
 
 import type { SendFileOptions } from 'express-serve-static-core';
 
-const origin = 'https://zhwp-afc-bot.toolforge.org';
+export const origin = 'https://zhwp-afc-bot.toolforge.org';
 const cache = new MemoryCache<string, unknown>();
 
 export function voidFunction() {
-	// ignore
+	// noop
 }
 
 export function mayEncodeAbsoluteURI( uri: string ) {
@@ -78,6 +78,12 @@ export function internalServerError( req: express.Request, res: express.Response
 	res.end();
 }
 
+export function badGateway( req: express.Request, res: express.Response ) {
+	res.status( 502 );
+	renderDefaultPage( 502, req, res );
+	res.end();
+}
+
 export function unavailable( req: express.Request, res: express.Response ) {
 	res.status( 503 );
 	renderDefaultPage( 503, req, res );
@@ -103,7 +109,7 @@ export function sendFile( fileName: string, options: SendFileOptions = {} ) {
 		res.status( 200 );
 		await new Promise<void>( function ( resolve, reject ) {
 			res.sendFile( fileName, options, function ( error ) {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
 				if ( error ) {
 					reject( error );
 				}
@@ -134,4 +140,57 @@ export interface SubRoute {
 	init?(): Promise<void> | void;
 	deinit?(): Promise<void> | void;
 	onRequest( req: express.Request, res: express.Response ): Promise<void> | void;
+}
+
+export type ProgramCache = Map<string, SubRoute | null>;
+
+export async function subRouteHandler(
+	req: express.Request,
+	res: express.Response,
+	programCache: ProgramCache,
+	programName: string,
+	resolvePrefix: string
+) {
+	let program: SubRoute | undefined | null;
+
+	if ( programCache.has( programName ) ) {
+		program = programCache.get( programName );
+		if ( program ) {
+			try {
+				return await program.onRequest( req, res );
+			} catch ( error ) {
+				winston.error( error );
+				return internalServerError( req, res );
+			}
+		} else {
+			return notFound( req, res );
+		}
+	}
+
+	try {
+		require.resolve( '@app/reviewer/' + programName );
+	} catch ( error ) {
+		programCache.set( programName, null );
+		return notFound( req, res );
+	}
+
+	try {
+		program = await import( `@app/${ resolvePrefix }/${ programName }` ) as SubRoute;
+		await program.init?.();
+	} catch ( error ) {
+		winston.error( util.inspect( error ) );
+		return internalServerError( req, res );
+	}
+
+	programCache.set( programName, program );
+	try {
+		await program.onRequest( req, res );
+	} catch ( error ) {
+		winston.error( util.inspect( error ) );
+		internalServerError( req, res );
+	} finally {
+		if ( !res.writableEnded ) {
+			res.end();
+		}
+	}
 }

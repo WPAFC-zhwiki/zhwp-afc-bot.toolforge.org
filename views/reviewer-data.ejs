@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>AfC review counts for zhwiki, last 28 days | zhwp-afc-bot.toolforge.org</title>
+	</head>
+	<body>
+		<h1>AfC review counts for zhwiki, last 28 days</h1>
+		<style>
+.wikitable {
+	background-color: #f8f9fa;
+	color: #202122;
+	margin: 1em 0;
+	border: 1px solid #a2a9b1;
+	border-collapse: collapse
+}
+
+.wikitable > tr > th,.wikitable > tr > td,.wikitable > * > tr > th,.wikitable > * > tr > td {
+	border: 1px solid #a2a9b1;
+	padding: 0.2em 0.4em
+}
+
+.wikitable > tr > th,.wikitable > * > tr > th {
+	background-color: #eaecf0;
+	text-align: center
+}
+
+.wikitable > caption {
+	font-weight: bold
+}
+		</style>
+		<table class="wikitable">
+			<tbody>
+				<tr>
+					<th>reviews</th>
+					<th>review user</th>
+					<th>accept</th>
+					<th>decline</th>
+					<th>reject</th>
+					<th>accept %</th>
+					<th>decline %</th>
+					<th>reject %</th>
+				</tr>
+				<% for (var reviewData = 0; i < reviewData.length; i++ ) { %>
+				<tr>
+					<td><%= reviewData[i].reviews %></td>
+					<td><%= reviewData[i].user %></td>
+					<td><%= reviewData[i].acceptCount %></td>
+					<td><%= reviewData[i].declineCount %></td>
+					<td><%= reviewData[i].rejectCount %></td>
+					<td><%= reviewData[i].acceptPercentage %></td>
+					<td><%= reviewData[i].declinePercentage %></td>
+					<td><%= reviewData[i].rejectPercentage %></td>
+				</tr>
+				<% } %>
+			</tbody>
+		</table>
+	</body>
+</html>
