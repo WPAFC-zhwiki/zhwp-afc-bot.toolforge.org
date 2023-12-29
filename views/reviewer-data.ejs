@@ -8,6 +8,29 @@
 	<body>
 		<h1>AfC review counts for zhwiki, last 28 days</h1>
 		<script>$( () => { $( '#reviewer-data' ).DataTable(); } );</script>
+		<style>
+			table {
+				background-color: #f8f9fa;
+				color: #202122;
+				margin: 1em 0;
+				border: 1px solid #a2a9b1;
+				border-collapse: collapse
+			}
+			table th,table td {
+				border: 1px solid #a2a9b1;
+				padding: 0.2em 0.4em
+			}
+			table th {
+				background-color: #88aaff;
+				text-align: center
+			}
+			table tr:nth-child(even) {
+				background: #ccccee
+			}
+			table tr:nth-child(odd) {
+				background: #ffffff
+			}
+		</style>
 		<table id="reviewer-data">
 			<thead>
 				<tr>
