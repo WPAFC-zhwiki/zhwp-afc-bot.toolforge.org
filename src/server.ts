@@ -169,7 +169,6 @@ app.use( [
 		return utils.sendFile( fullPath )( req, res );
 	} else if ( path.extname( apiName ) === '.json' ) {
 		api = {
-			init: utils.voidFunction,
 			onRequest: utils.sendFile( fullPath )
 		};
 	} else {
@@ -286,8 +285,13 @@ chokidar
 		if ( relative.length !== 2 ) {
 			return;
 		}
-		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-		delete require.cache[ require.resolve( pathName ) ];
+		if ( event === 'unlink' ) {
+			// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+			delete require.cache[ path.resolve( __dirname, pathName ) ];
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+			delete require.cache[ require.resolve( pathName ) ];
+		}
 		const cacheName = relative[ 1 ].replace( /\.[jt]s$/, '' );
 		switch ( relative[ 0 ] ) {
 			case 'api':
