@@ -37,7 +37,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 	const cacheName = 'api/list-sysop-patroller/data';
 	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
 		utils.removeCache( cacheName );
-		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).href, req, res );
+		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
 	}
 
 	const returnValue = await utils.getWithCacheAsync<[string, unknown]>(
