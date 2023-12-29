@@ -12,11 +12,11 @@ import serveIndex = require( 'serve-index' );
 import winston = require( 'winston' );
 import { REGISTER_INSTANCE } from 'ts-node';
 
-import * as cache from '@app/cache';
-
 moduleAlias.addAliases( {
 	'@app': __dirname
 } );
+
+import * as cache from '@app/cache';
 
 // eslint-disable-next-line import/no-named-as-default-member
 dotenv.config( {
