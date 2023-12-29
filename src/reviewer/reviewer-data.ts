@@ -35,7 +35,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		utils.internalServerError( req, res );
 	}
 
-	const cacheName = 'api/list-sysop-patroller/data';
+	const cacheName = 'reviewer/reviewer-data/data';
 	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
 		await removeCachedItem( cacheName );
 		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
