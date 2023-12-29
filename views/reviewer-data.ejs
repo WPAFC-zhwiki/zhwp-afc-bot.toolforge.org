@@ -9,7 +9,7 @@
 		<h1>AfC review counts for zhwiki, last 28 days</h1>
 		<script>$( () => { $( '#reviewer-data' ).DataTable(); } );</script>
 		<table id="reviewer-data">
-			<tbody>
+			<thead>
 				<tr>
 					<th>reviews</th>
 					<th>review user</th>
@@ -20,6 +20,8 @@
 					<th>decline %</th>
 					<th>reject %</th>
 				</tr>
+			</thead>
+			<tbody>
 				<% for (var i = 0; i < reviewData.length; i++ ) { %>
 				<tr>
 					<td><%= reviewData[i].reviews %></td>

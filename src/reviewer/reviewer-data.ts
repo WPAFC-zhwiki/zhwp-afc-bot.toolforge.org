@@ -3,7 +3,7 @@ import util = require( 'node:util' );
 import express = require( 'express' );
 import winston = require( 'winston' );
 
-import { methodNoAllow, getWithCacheAsync, internalServerError, badGateway, replicaAccessDisabled } from '@app/utils';
+import * as utils from '@app/utils';
 import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
 
 function withBufferToStringJSONStringify( json: unknown ) {
@@ -23,20 +23,26 @@ function withBufferToStringJSONStringify( json: unknown ) {
 
 export async function onRequest( req: express.Request, res: express.Response ) {
 	if ( req.method.toUpperCase() !== 'GET' ) {
-		return methodNoAllow( req, res );
+		return utils.methodNoAllow( req, res );
 	}
 	if ( !isReplicaQueryEnable ) {
-		replicaAccessDisabled( req, res );
+		utils.replicaAccessDisabled( req, res );
 		return;
 	}
 
 	function sendBroken() {
-		internalServerError( req, res );
+		utils.internalServerError( req, res );
 	}
 
-	const data = await getWithCacheAsync<unknown>(
-		'api/list-sysop-patroller/data',
-		5 * 60 * 1000,
+	const cacheName = 'api/list-sysop-patroller/data';
+	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
+		utils.removeCache( cacheName );
+		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).href, req, res );
+	}
+
+	const data = await utils.getWithCacheAsync<unknown>(
+		cacheName,
+		60 * 60 * 1000,
 		async () => {
 			try {
 				const queryResults = ( await doReplicaQuery( '\
@@ -93,7 +99,7 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 		}
 
 		if ( !res.writableEnded ) {
-			return badGateway( req, res );
+			return utils.badGateway( req, res );
 		}
 	}
 }

@@ -142,6 +142,10 @@ export async function getWithCacheAsync<T>(
 	return value;
 }
 
+export function removeCache( key: string ): boolean {
+	return cache.del( key );
+}
+
 export interface SubRoute {
 	init?(): Promise<void> | void;
 	deinit?(): Promise<void> | void;
