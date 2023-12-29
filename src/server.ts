@@ -172,13 +172,13 @@ app.use( [
 app.use( [
 	'/reviewer'
 ], serveIndex( path.join( __dirname, 'reviewer' ) ), async function ( req, res, next ) {
-	const subPath: string = req.path.slice( '/reviewer/'.length );
+	const subPath: string = req.path.slice( 1 );
 	if ( path.basename( subPath ).startsWith( '.' ) ) {
 		return utils.notFound( req, res );
 	}
 	if (
 		!subPath.match( /^[a-z\d-]+\.js$/ ) ||
-		!fs.existsSync( path.join( __dirname, 'reviewer', `.${ subPath }.js.nodejs-program` ) ) ||
+		!fs.existsSync( path.join( __dirname, 'reviewer', `.${ subPath }.nodejs-program` ) ) ||
 		new URL( req.url, utils.origin ).searchParams.has( 'raw' )
 	) {
 		return next();

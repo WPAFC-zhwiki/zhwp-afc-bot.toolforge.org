@@ -3,7 +3,7 @@ import util = require( 'node:util' );
 import express = require( 'express' );
 import winston = require( 'winston' );
 
-import { methodNoAllow, getWithCacheAsync, internalServerError, badGateway } from '@app/utils';
+import { methodNoAllow, getWithCacheAsync, internalServerError, badGateway, replicaAccessDisabled } from '@app/utils';
 import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
 
 function withBufferToStringJSONStringify( json: unknown ) {
@@ -26,11 +26,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		return methodNoAllow( req, res );
 	}
 	if ( !isReplicaQueryEnable ) {
-		res.status( 422 );
-		res.json( {
-			status: 422
-		} );
-		res.end();
+		replicaAccessDisabled( req, res );
 		return;
 	}
 

@@ -72,6 +72,12 @@ export function methodNoAllow( req: express.Request, res: express.Response ) {
 	res.end();
 }
 
+export function replicaAccessDisabled( req: express.Request, res: express.Response ) {
+	res.status( 422 );
+	renderDefaultPage( '422-replica-access-disabled', req, res );
+	res.end();
+}
+
 export function internalServerError( req: express.Request, res: express.Response ) {
 	res.status( 500 );
 	renderDefaultPage( 500, req, res );
