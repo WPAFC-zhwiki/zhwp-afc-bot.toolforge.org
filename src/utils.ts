@@ -3,12 +3,10 @@ import util = require( 'node:util' );
 import express = require( 'express' );
 import expressPackageJson = require( 'express/package.json' );
 import winston = require( 'winston' );
-import { Cache as MemoryCache } from 'memory-cache';
 
 import type { SendFileOptions } from 'express-serve-static-core';
 
 export const origin = 'https://zhwp-afc-bot.toolforge.org';
-const cache = new MemoryCache<string, unknown>();
 
 export function voidFunction() {
 	// noop
@@ -124,26 +122,6 @@ export function sendFile( fileName: string, options: SendFileOptions = {} ) {
 		} );
 		res.end();
 	};
-}
-
-export async function getWithCacheAsync<T>(
-	key: string,
-	expiredTime: number,
-	getCallback: () => Promise<T|null>
-): Promise<T|null> {
-	const cachedValue = cache.get( key ) as T;
-	if ( cachedValue ) {
-		return cachedValue;
-	}
-	const value = await getCallback();
-	if ( value !== null ) {
-		cache.put( key, value, expiredTime );
-	}
-	return value;
-}
-
-export function removeCache( key: string ): boolean {
-	return cache.del( key );
 }
 
 export interface SubRoute {

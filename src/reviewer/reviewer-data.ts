@@ -4,6 +4,7 @@ import express = require( 'express' );
 import winston = require( 'winston' );
 
 import * as utils from '@app/utils';
+import { getWithCacheAsync, removeCachedItem } from '@app/cache';
 import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
 
 function withBufferToStringJSONStringify( json: unknown ) {
@@ -36,11 +37,11 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 
 	const cacheName = 'api/list-sysop-patroller/data';
 	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
-		utils.removeCache( cacheName );
+		await removeCachedItem( cacheName );
 		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
 	}
 
-	const returnValue = await utils.getWithCacheAsync<[string, unknown]>(
+	const returnValue = await getWithCacheAsync<[string, unknown]>(
 		cacheName,
 		60 * 60 * 1000,
 		async () => {

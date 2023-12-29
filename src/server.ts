@@ -12,6 +12,8 @@ import serveIndex = require( 'serve-index' );
 import winston = require( 'winston' );
 import { REGISTER_INSTANCE } from 'ts-node';
 
+import * as cache from '@app/cache';
+
 moduleAlias.addAliases( {
 	'@app': __dirname
 } );
@@ -246,12 +248,16 @@ chokidar
 		}
 	} );
 
-const server = app.listen( defaultPort, function () {
-	let address = server.address();
-	if ( address === null ) {
-		address = '';
-	} else if ( typeof address === 'object' ) {
-		address = util.format( 'IP: %s, PORT: %s', address.address, address.port );
-	}
-	winston.info( 'Server Start At ' + address );
+Promise.all( [
+	cache.init()
+] ).then( () => {
+	const server = app.listen( defaultPort, function () {
+		let address = server.address();
+		if ( address === null ) {
+			address = '';
+		} else if ( typeof address === 'object' ) {
+			address = util.format( 'IP: %s, PORT: %s', address.address, address.port );
+		}
+		winston.info( 'Server Start At ' + address );
+	} );
 } );

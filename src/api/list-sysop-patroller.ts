@@ -3,8 +3,9 @@ import util = require( 'node:util' );
 import express = require( 'express' );
 import winston = require( 'winston' );
 
-import { methodNoAllow, getWithCacheAsync } from '@app/utils';
+import { methodNoAllow } from '@app/utils';
 import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
+import { getWithCacheAsync } from '@app/cache';
 
 export async function onRequest( req: express.Request, res: express.Response ) {
 	if ( req.method.toUpperCase() !== 'GET' ) {

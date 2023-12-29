@@ -7,7 +7,8 @@ import { ApiParams, ApiRevision, mwn, MwnTitle } from 'mwn';
 import { ApiQueryRevisionsParams } from 'mwn/build/api_params';
 import type { RawRequestParams } from 'mwn/build/core';
 
-import { getWithCacheAsync, methodNoAllow } from '@app/utils';
+import { methodNoAllow } from '@app/utils';
+import { getWithCacheAsync } from '@app/cache';
 
 const $ = cheerio.load( '' );
 
