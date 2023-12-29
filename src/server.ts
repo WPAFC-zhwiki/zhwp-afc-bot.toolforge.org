@@ -170,7 +170,7 @@ app.use( [
 ], utils.rewriteUrl( '/reviewer' ) );
 
 app.use( [
-	'/reviewer/:path'
+	'/reviewer'
 ], serveIndex( path.join( __dirname, 'reviewer' ) ), async function ( req, res, next ) {
 	const subPath: string = req.path.slice( '/reviewer/'.length );
 	if ( path.basename( subPath ).startsWith( '.' ) ) {
