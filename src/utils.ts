@@ -177,15 +177,16 @@ export async function subRouteHandler(
 		}
 	}
 
+	const moduleName = `@app/${ resolvePrefix }/${ programName }`;
 	try {
-		require.resolve( '@app/reviewer/' + programName );
+		require.resolve( moduleName );
 	} catch ( error ) {
 		programCache.set( programName, null );
 		return notFound( req, res );
 	}
 
 	try {
-		program = await import( `@app/${ resolvePrefix }/${ programName }` ) as SubRoute;
+		program = await import( moduleName ) as SubRoute;
 		await program.init?.();
 	} catch ( error ) {
 		winston.error( util.inspect( error ) );
