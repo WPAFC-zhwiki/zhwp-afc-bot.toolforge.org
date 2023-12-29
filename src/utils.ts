@@ -114,5 +114,6 @@ export function sendFile( fileName: string, options: SendFileOptions = {} ) {
 
 export interface SubRoute {
 	init?(): Promise<void> | void;
+	deinit?(): Promise<void> | void;
 	onRequest( req: express.Request, res: express.Response ): Promise<void> | void;
 }

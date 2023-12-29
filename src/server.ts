@@ -276,7 +276,7 @@ chokidar
 			usePolling: true
 		}
 	)
-	.on( 'all', function ( event, pathName ) {
+	.on( 'all', async function ( event, pathName ) {
 		if ( pathName.match( /\.d\.ts$/ ) ) {
 			return;
 		}
@@ -292,11 +292,13 @@ chokidar
 		switch ( relative[ 0 ] ) {
 			case 'api':
 				winston.info( util.format( 'reload api %s', cacheName ) );
+				await apiCache.get( cacheName )?.deinit?.();
 				apiCache.delete( cacheName );
 				break;
 
 			case 'shortcut':
 				winston.info( util.format( 'reload shortcut %s', cacheName ) );
+				await shortcutCache.get( cacheName )?.deinit?.();
 				shortcutCache.delete( cacheName );
 				break;
 		}
