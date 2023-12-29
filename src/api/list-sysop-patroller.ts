@@ -32,13 +32,13 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		5 * 60 * 1000,
 		async () => {
 			try {
-				const queryResults = await doReplicaQuery( '\
+				const queryResults = ( await doReplicaQuery( '\
 SELECT `user_name` \
 FROM `user` \
 LEFT JOIN `user_groups` on `user_id` = `ug_user` \
 WHERE `ug_group` = "sysop" OR `ug_group` = "patroller" \
 ORDER BY `user_name` ASC; \
-				' );
+				' ) ).result;
 				if ( req.isTimeOut ) {
 					return null;
 				}

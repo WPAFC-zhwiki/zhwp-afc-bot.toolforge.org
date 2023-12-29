@@ -39,7 +39,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		5 * 60 * 1000,
 		async () => {
 			try {
-				const queryResults = await doReplicaQuery( '\
+				const queryResults = ( await doReplicaQuery( '\
 SELECT \
 	COUNT(`rc_id`) AS `reviews`, \
 	`actor_name` as `user`, \
@@ -57,7 +57,7 @@ WHERE \
 	AND (`comment_text` LIKE "%发布已接受的[[PJ:AFC|条目建立]]草稿%" OR `comment_text` LIKE "%發布已接受的[[PJ:AFC|條目建立]]草稿%" OR `comment_text` LIKE "%仍需改善的草稿%" OR `comment_text` LIKE "%拒绝再次提交的草稿%" OR `comment_text` LIKE "%拒絕再次提交的草稿%") \
 	AND (`rc_timestamp` >= DATE_ADD(NOW(), INTERVAL -28 DAY) ) \
 GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
-				' );
+				' ) ).result;
 				if ( req.isTimeOut ) {
 					return null;
 				}
