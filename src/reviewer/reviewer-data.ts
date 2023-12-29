@@ -40,7 +40,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).href, req, res );
 	}
 
-	const data = await utils.getWithCacheAsync<unknown>(
+	const returnValue = await utils.getWithCacheAsync<[string, unknown]>(
 		cacheName,
 		60 * 60 * 1000,
 		async () => {
@@ -73,7 +73,10 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 					return null;
 				}
 				try {
-					return JSON.parse( withBufferToStringJSONStringify( queryResults ) ) as unknown;
+					return [
+						new Date().toISOString(),
+						JSON.parse( withBufferToStringJSONStringify( queryResults ) ) as unknown
+					];
 				} catch ( parseDataError ) {
 					winston.error( `[reviewer/reviewer-data] Unknown error when parse data: ${ util.inspect( parseDataError ) }.` );
 					sendBroken();
@@ -88,10 +91,11 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 	);
 
 	if ( !req.isTimeOut ) {
-		if ( data ) {
+		if ( returnValue ) {
 			res.status( 200 );
 			res.render( 'reviewer-data', {
-				reviewData: data
+				dataTimestamp: returnValue[ 0 ],
+				reviewData: returnValue[ 1 ]
 			} );
 
 			res.setHeader( 'Cache-Control', 'max-age=86400, must-revalidate' );
