@@ -20,15 +20,33 @@ export function mayEncodeAbsoluteURI( uri: string ) {
 	return url.href;
 }
 
-// eslint-disable-next-line max-len
-function renderDefaultPage( code: unknown, req: express.Request, res: express.Response, args: Record<string, string> = {} ) {
-	const pathname = new URL( req.originalUrl, origin ).pathname;
-	res.render( 'status/' + String( code ), {
-		expressVersion: expressPackageJson.version,
-		method: req.method.toUpperCase(),
-		pathname,
-		...args
-	} );
+type JSONResponseApiVersion = number;
+
+function renderDefaultPage(
+	code: number,
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion,
+	args: Record<string, string> = {},
+	errorTemplate: string = String( code )
+) {
+	if ( useJson ) {
+		const response: Record<string, unknown> = {
+			status: code
+		};
+		if ( typeof useJson === 'number' ) {
+			response.apiVersion = useJson;
+		}
+		res.json( response );
+	} else {
+		const pathname = new URL( req.originalUrl, origin ).pathname;
+		res.render( 'status/' + errorTemplate, {
+			expressVersion: expressPackageJson.version,
+			method: req.method.toUpperCase(),
+			pathname,
+			...args
+		} );
+	}
 }
 
 export function rewriteUrl( newPrefix: string ) {
@@ -40,64 +58,96 @@ export function rewriteUrl( newPrefix: string ) {
 export function movedPermanently( location: string, req: express.Request, res: express.Response ) {
 	res.status( 301 );
 	res.set( 'Location', mayEncodeAbsoluteURI( location ) );
-	renderDefaultPage( 301, req, res, {
+	renderDefaultPage( 301, req, res, /** useJson */ false, {
 		location
 	} );
 	res.end();
 }
 
-export function badRequest( req: express.Request, res: express.Response ) {
+export function badRequest(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 400 );
-	renderDefaultPage( 400, req, res );
+	renderDefaultPage( 400, req, res, useJson );
 	res.end();
 }
 
-export function forbidden( req: express.Request, res: express.Response ) {
+export function forbidden(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 403 );
-	renderDefaultPage( 403, req, res );
+	renderDefaultPage( 403, req, res, useJson );
 	res.end();
 }
 
-export function notFound( req: express.Request, res: express.Response ) {
+export function notFound(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 404 );
-	renderDefaultPage( 404, req, res );
+	renderDefaultPage( 404, req, res, useJson );
 	res.end();
 }
 
-export function methodNoAllow( req: express.Request, res: express.Response ) {
+export function methodNoAllow(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 405 );
-	renderDefaultPage( 405, req, res );
+	renderDefaultPage( 405, req, res, useJson );
 	res.end();
 }
 
-export function replicaAccessDisabled( req: express.Request, res: express.Response ) {
+export function replicaAccessDisabled(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 422 );
-	renderDefaultPage( '422-replica-access-disabled', req, res );
+	renderDefaultPage( 422, req, res, useJson, {}, '422-replica-access-disabled' );
 	res.end();
 }
 
-export function internalServerError( req: express.Request, res: express.Response ) {
+export function internalServerError(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 500 );
-	renderDefaultPage( 500, req, res );
+	renderDefaultPage( 500, req, res, useJson );
 	res.end();
 }
 
-export function badGateway( req: express.Request, res: express.Response ) {
+export function badGateway(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 502 );
-	renderDefaultPage( 502, req, res );
+	renderDefaultPage( 502, req, res, useJson );
 	res.end();
 }
 
-export function unavailable( req: express.Request, res: express.Response ) {
+export function unavailable(
+	req: express.Request,
+	res: express.Response,
+	useJson: boolean | JSONResponseApiVersion = false
+) {
 	res.status( 503 );
-	renderDefaultPage( 503, req, res );
+	renderDefaultPage( 503, req, res, useJson );
 	res.setHeader( 'Retry-After', 120 );
 	res.end();
 }
 
 export function timeOut( req: express.Request, res: express.Response ) {
 	res.writeHead( 503, 'Request Timeout' );
-	renderDefaultPage( 'timeout', req, res );
+	renderDefaultPage( 503, req, res, /** useJson #TODO */ false, {}, 'timeout' );
 	res.setHeader( 'Retry-After', 600 );
 	res.end();
 }

@@ -23,22 +23,36 @@ function withBufferToStringJSONStringify( json: unknown ) {
 }
 
 export async function onRequest( req: express.Request, res: express.Response ) {
-	if ( req.method.toUpperCase() !== 'GET' ) {
-		return utils.methodNoAllow( req, res );
+	const apiVersion = 1;
+
+	if ( req.method.toUpperCase() !== 'GET' && req.method.toUpperCase() !== 'POST' ) {
+		return utils.methodNoAllow( req, res, apiVersion );
 	}
 	if ( !isReplicaQueryEnable ) {
-		utils.replicaAccessDisabled( req, res );
-		return;
+		return utils.replicaAccessDisabled( req, res, apiVersion );
 	}
 
 	function sendBroken() {
-		utils.internalServerError( req, res );
+		utils.internalServerError( req, res, apiVersion );
 	}
 
-	const cacheName = 'reviewer/reviewer-data/data';
+	const cacheName = 'api/reviewer-data/data';
 	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
 		await removeCachedItem( cacheName );
 		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
+	}
+	const reqSplit = new URL( req.originalUrl, utils.origin ).pathname.split( '/' ); // [ 'api', 'reviewer-data', ... ]
+	if ( reqSplit.length === 3 ) {
+		if ( reqSplit.length > 3 || reqSplit[ 2 ] !== 'purge' ) {
+			return utils.badRequest( req, res, apiVersion );
+		} else if ( req.method.toUpperCase() !== 'POST' ) {
+			return utils.methodNoAllow( req, res, apiVersion );
+		}
+		await removeCachedItem( cacheName );
+		res.status( 204 );
+		res.setHeader( 'Cache-Control', 'no-store' );
+		res.end();
+		return;
 	}
 
 	const returnValue = await getWithCacheAsync<[string, unknown]>(
@@ -79,12 +93,12 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 						JSON.parse( withBufferToStringJSONStringify( queryResults ) ) as unknown
 					];
 				} catch ( parseDataError ) {
-					winston.error( `[reviewer/reviewer-data] Unknown error when parse data: ${ util.inspect( parseDataError ) }.` );
+					winston.error( `[api/reviewer-data] Unknown error when parse data: ${ util.inspect( parseDataError ) }.` );
 					sendBroken();
 					return null;
 				}
 			} catch ( queryError ) {
-				winston.error( `[reviewer/reviewer-data] Unknown error when query data: ${ util.inspect( queryError ) }.` );
+				winston.error( `[api/reviewer-data] Unknown error when query data: ${ util.inspect( queryError ) }.` );
 				sendBroken();
 				return null;
 			}
@@ -94,17 +108,17 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 	if ( !req.isTimeOut ) {
 		if ( returnValue ) {
 			res.status( 200 );
-			res.render( 'reviewer-data', {
+			res.setHeader( 'Cache-Control', 'max-age=3600, must-revalidate' );
+			res.json( {
+				apiVersion,
 				dataTimestamp: returnValue[ 0 ],
-				reviewData: returnValue[ 1 ]
+				reviewerData: returnValue[ 1 ]
 			} );
-
-			res.setHeader( 'Cache-Control', 'max-age=86400, must-revalidate' );
 			res.end();
 		}
 
 		if ( !res.writableEnded ) {
-			return utils.badGateway( req, res );
+			return utils.badGateway( req, res, apiVersion );
 		}
 	}
 }

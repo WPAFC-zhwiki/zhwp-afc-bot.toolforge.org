@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<html class="no-js">
+	<head>
+		<title>AfC review counts for zhwiki, last 28 days | zhwp-afc-bot.toolforge.org</title>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/datatables.net/1.13.8/jquery.dataTables.min.js" integrity="sha512-TgxkAWzvZ5QHj09nGCAHIq2ynLQT1hSgJQZK25wWQwReBLNWEtMU5BqoaQiYPrjaB3OfPuCfVDQ7n2csnDR+SQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+		<link rel="stylesheet" href="https://tools-static.wmflabs.org/zhwp-afc-bot/resource/jquery.dataTables.v1.13.8.css" integrity="sha512-r/xZinIkB3eI4aMD6FThHkGQog8Z3UNMwsjuWZFWcAmnnbCngXkACQQf9JgZegZZm58Y6MCSZIuyYWxqpY1qYg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+	</head>
+	<body>
+		<h1>AfC review counts for zhwiki, last 28 days</h1>
+		<script>
+			function cutResText(/** @type {string} */ res) {
+				return res.length > 1000 ? res.slice(0, 994) + '......' : res;
+			}
+			let isRequesting = false;
+			async function getData() {
+				isRequesting = true;
+				$('fetch-timestamp').text('unknown');
+				$('#data').removeClass(['fetch-error']).addClass(['loading']);
+				$('#loading').removeClass(['loaded']);
+				$('#error-message').empty();
+
+				const getUrl = new URL('/api/reviewer-data', window.location.origin);
+				getUrl.searchParams.set('_', new Date().toISOString());
+				try {
+					let xhr;
+					/**
+					 * @typedef {object} ResponseJSON
+					 * @property {1} apiVersion
+					 * @property {string} dataTimestamp
+					 * @property {array} reviewerData
+					 */
+					/** @type {ResponseJSON} */
+					let json;
+					try {
+						xhr = $.getJSON('/api/reviewer-data');
+						json = await xhr;
+					} catch (error) {
+						throw new Error(`HTTP Error: status: ${xhr.status}, responseText: ${cutResText(xhr.responseText)}`);
+					}
+
+					$('fetch-timestamp').text(json.dataTimestamp);
+					$('#reviewer-data').DataTable({
+						data: json.reviewerData,
+						columns: [
+							{ data: 'reviews' },
+							{ data: 'user' },
+							{ data: 'acceptCount' },
+							{ data: 'declineCount' },
+							{ data: 'rejectCount' },
+							{ data: 'acceptPercentage' },
+							{ data: 'declinePercentage' },
+							{ data: 'rejectPercentage' },
+						],
+						order: [
+							[0, 'desc']
+						]
+					});
+				} catch (error) {
+					$('#data').addClass(['fetch-error']);
+					$('#error-message')
+						.append(String(error).split('\n').map(line => $('<p>').text(line)));
+				} finally {
+					$('#data').removeClass(['loading']);
+					$('#loading').addClass(['loaded']);
+					isRequesting = false;
+				}
+			}
+
+			$(() => {
+				document.documentElement.classList.remove('no-js');
+				document.documentElement.classList.add('js');
+				getData();
+				$('#purge').on('click', (e) => {
+					e.preventDefault();
+					if (isRequesting) {
+						return;
+					}
+
+					isRequesting = true;
+					const xhr = $.post('/api/reviewer-data/purge', () => {
+						getData();
+					}, () => {
+						isRequesting = false;
+						alert(`Purge fail, server return ${xhr.status}.`);
+					});
+				});
+			});
+		</script>
+		<style>
+			html.no-js .js-show,
+			html.js .js-hide,
+			#loading.loaded,
+			#data.loading,
+			#data.fetch-error #reviewer-data,
+			#data:not(.fetch-error) #error-message {
+				display: none;
+			}
+			table {
+				background-color: #f8f9fa;
+				color: #202122;
+				margin: 1em 0;
+				border: 1px solid #a2a9b1;
+				border-collapse: collapse
+			}
+			table th,table td {
+				border: 1px solid #a2a9b1;
+				padding: 0.2em 0.4em
+			}
+			table th {
+				background-color: #88aaff;
+				text-align: center
+			}
+			table > tbody > tr:nth-child(even of :not([hidden])) {
+				background: #ccccee
+			}
+			table > tbody > tr:nth-child(odd of :not([hidden])) {
+				background: #ffffff
+			}
+		</style>
+		<script>
+			document.body.classList.remove('client-no-js');
+			document.body.classList.add('client-js');
+		</script>
+		<main class="loading">
+			<div class="js-hide" id="script-require-message">
+				This page need JavaScript.
+			</div>
+			<div class="js-show" id="loading">
+				Loading......
+			</div>
+			<div class="js-show" id="data">
+				<div>Data fetch at <span id="fetch-timestamp">{timestamp}</span>. <a id="purge">Refresh now</a>.</div>
+				<table id="reviewer-data">
+					<thead>
+						<tr>
+							<th>reviews</th>
+							<th>review user</th>
+							<th>accept</th>
+							<th>decline</th>
+							<th>reject</th>
+							<th>accept %</th>
+							<th>decline %</th>
+							<th>reject %</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+				<pre id="error-message">
+				</pre>
+			</div>
+		</main>
+	</body>
+</html>
