@@ -196,7 +196,7 @@ app.get( '/generate_204', function ( _req, res ) {
 	res.end();
 } );
 
-app.use( utils.notFound );
+app.use( ( req, res ) => utils.notFound( req, res ) );
 
 chokidar
 	.watch(
