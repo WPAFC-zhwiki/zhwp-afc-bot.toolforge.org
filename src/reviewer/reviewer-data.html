@@ -52,7 +52,8 @@
 						],
 						order: [
 							[0, 'desc']
-						]
+						],
+						destroy: true
 					});
 				} catch (error) {
 					$('#data').addClass(['fetch-error']);
@@ -129,7 +130,7 @@
 				Loading......
 			</div>
 			<div class="js-show" id="data">
-				<div>Data fetch at <span id="fetch-timestamp">{timestamp}</span>. <a id="purge">Refresh now</a>.</div>
+				<div>Data fetch at <span id="fetch-timestamp">{timestamp}</span>. <a id="purge" href="#">Refresh now</a>.</div>
 				<table id="reviewer-data">
 					<thead>
 						<tr>
