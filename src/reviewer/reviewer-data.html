@@ -20,8 +20,6 @@
 				$('#loading').removeClass(['loaded']);
 				$('#error-message').empty();
 
-				const getUrl = new URL('/api/reviewer-data', window.location.origin);
-				getUrl.searchParams.set('_', new Date().toISOString());
 				try {
 					let xhr;
 					/**
@@ -78,7 +76,8 @@
 					}
 
 					isRequesting = true;
-					const xhr = $.post('/api/reviewer-data/purge', () => {
+					const xhr = $.post('/api/reviewer-data/purge');
+					xhr.then(() => {
 						getData();
 					}, () => {
 						isRequesting = false;

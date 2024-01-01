@@ -41,7 +41,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		await removeCachedItem( cacheName );
 		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
 	}
-	const reqSplit = new URL( req.originalUrl, utils.origin ).pathname.split( '/' ); // [ 'api', 'reviewer-data', ... ]
+	const reqSplit = new URL( req.originalUrl, utils.origin ).pathname.split( '/' ).filter( ( v ) => v ); // [ 'api', 'reviewer-data', ... ]
 	if ( reqSplit.length === 3 ) {
 		if ( reqSplit.length > 3 || reqSplit[ 2 ] !== 'purge' ) {
 			return utils.badRequest( req, res, apiVersion );
@@ -108,7 +108,7 @@ GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
 	if ( !req.isTimeOut ) {
 		if ( returnValue ) {
 			res.status( 200 );
-			res.setHeader( 'Cache-Control', 'max-age=3600, must-revalidate' );
+			res.setHeader( 'Cache-Control', 'max-age=0, must-revalidate' );
 			res.json( {
 				apiVersion,
 				dataTimestamp: returnValue[ 0 ],
