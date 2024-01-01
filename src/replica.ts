@@ -34,7 +34,35 @@ async function init() {
 			connectionLimit: 5,
 			queueLimit: 5
 		} );
-		pool.on( 'error', ( error ) => winston.error( `[database] Pool error: ${ util.inspect( error ) }.` ) );
+		const pendingThreadIds = new Map<number, NodeJS.Timeout>();
+		pool.on( 'error', ( error ) => winston.error( `[replica] Pool error: ${ util.inspect( error ) }.` ) );
+		pool.on( 'connection', ( connection: mysql.PoolConnection ) => {
+			const threadId = connection.threadId;
+			winston.debug( `[replica] mysql event connection: ${ threadId }` );
+		} );
+		pool.on( 'acquire', ( connection: mysql.PoolConnection ) => {
+			const threadId = connection.threadId;
+			winston.debug( `[replica] mysql event acquire: ${ threadId }` );
+			if ( threadId && pendingThreadIds.has( threadId ) ) {
+				clearTimeout( pendingThreadIds.get( threadId ) );
+				pendingThreadIds.delete( threadId );
+			}
+		} );
+		pool.on( 'release', ( connection: mysql.PoolConnection ) => {
+			const threadId = connection.threadId;
+			winston.debug( `[replica] mysql event release: ${ threadId }` );
+			if ( threadId ) {
+				pendingThreadIds.set( threadId, setTimeout( () => {
+					winston.debug( `[replica] mysql connection destroy: ${ threadId }` );
+					connection.destroy();
+					pendingThreadIds.delete( threadId );
+				}, 2 * 60 * 1000 /* 2 min */ ) );
+			}
+		} );
+		pool.on( 'connection', ( connection: mysql.PoolConnection ) => {
+			const threadId = connection.threadId;
+			winston.debug( `[replica] mysql event enqueue: ${ threadId }` );
+		} );
 	}
 }
 

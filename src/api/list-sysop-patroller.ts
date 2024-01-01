@@ -4,7 +4,7 @@ import express = require( 'express' );
 import winston = require( 'winston' );
 
 import { methodNoAllow } from '@app/utils';
-import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
+import { doReplicaQuery, isReplicaQueryEnable } from '@app/replica';
 import { getWithCacheAsync } from '@app/cache';
 
 export async function onRequest( req: express.Request, res: express.Response ) {

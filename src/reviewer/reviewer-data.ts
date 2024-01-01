@@ -5,7 +5,7 @@ import winston = require( 'winston' );
 
 import * as utils from '@app/utils';
 import { getWithCacheAsync, removeCachedItem } from '@app/cache';
-import { doReplicaQuery, isReplicaQueryEnable } from '@app/database';
+import { doReplicaQuery, isReplicaQueryEnable } from '@app/replica';
 
 function withBufferToStringJSONStringify( json: unknown ) {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
