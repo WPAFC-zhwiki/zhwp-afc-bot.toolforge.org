@@ -15,7 +15,7 @@
 			let isRequesting = false;
 			async function getData() {
 				isRequesting = true;
-				$('fetch-timestamp').text('unknown');
+				$('#fetch-timestamp').text('unknown');
 				$('#data').removeClass(['fetch-error']).addClass(['loading']);
 				$('#loading').removeClass(['loaded']);
 				$('#error-message').empty();
@@ -37,7 +37,7 @@
 						throw new Error(`HTTP Error: status: ${xhr.status}, responseText: ${cutResText(xhr.responseText)}`);
 					}
 
-					$('fetch-timestamp').text(json.dataTimestamp);
+					$('#fetch-timestamp').text(json.dataTimestamp);
 					$('#reviewer-data').DataTable({
 						data: json.reviewerData,
 						columns: [
