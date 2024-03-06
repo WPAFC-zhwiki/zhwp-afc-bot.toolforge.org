@@ -34,11 +34,14 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		async () => {
 			try {
 				const queryResults = ( await doReplicaQuery( '\
-SELECT `user_name` \
-FROM `user` \
-LEFT JOIN `user_groups` on `user_id` = `ug_user` \
-WHERE `ug_group` = "sysop" OR `ug_group` = "patroller" \
-ORDER BY `user_name` ASC; \
+WITH g AS ( \
+	SELECT DISTINCT `ug_user` FROM `user_groups` WHERE `ug_group` IN ("sysop", "patroller") \
+	EXCEPT \
+	SELECT `ug_user` FROM `user_groups` WHERE `ug_group` = "bot" \
+) \
+SELECT `user_name`, `user_id` FROM g \
+INNER JOIN `user` ON `user_id` = `ug_user` \
+WHERE `user_name` <> "滥用过滤器"; \
 				' ) ).result;
 				if ( req.isTimeOut ) {
 					return null;
@@ -53,7 +56,7 @@ ORDER BY `user_name` ASC; \
 					for ( const line of queryResults ) {
 						resultData.push( ( line as { user_name: Buffer; } ).user_name.toString( 'utf-8' ) );
 					}
-					return resultData;
+					return resultData.sort( ( a, b ) => a.localeCompare( b ) );
 				} catch ( parseDataError ) {
 					winston.error( `[api/list-sysop-patroller] Unknown error when parse data: ${ util.inspect( parseDataError ) }.` );
 					sendBroken();
