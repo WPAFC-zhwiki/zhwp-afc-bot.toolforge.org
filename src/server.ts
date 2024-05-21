@@ -132,6 +132,15 @@ if ( process.env.ICG_BOT_ROOT ) {
 		} ) );
 	}
 
+	if ( process.env.ICG_BOT_HEARTBEAT ) {
+		app.get( '/ICG-BOT/heartbeat.txt', utils.sendFile( process.env.ICG_BOT_HEARTBEAT, {
+			headers: {
+				'Content-Type': 'text/plain;charset=UTF-8',
+				'Content-Disposition': 'inline'
+			}
+		} ) );
+	}
+
 	app.get( '/ICG-BOT/restart', function ( req, res ) {
 		icgRestart( req, res );
 	} );
