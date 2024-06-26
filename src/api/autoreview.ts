@@ -143,7 +143,7 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 	if ( !elements.extlinks.length ) {
 		issues.push( 'no-extlink' );
 	}
-	const contentLen = countText.length - ( countText.match( /\p{L}/i )?.length ?? 0 ) * 0.5;
+	const contentLen = countText.length - ( countText.match( /\p{L}/iu )?.length ?? 0 ) * 0.5;
 	if ( contentLen === 0 ) {
 		issues.push( 'size-zero' );
 	} else if ( contentLen <= 50 ) {
