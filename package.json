@@ -37,7 +37,7 @@
 		"memory-cache": "^0.2.0",
 		"mime": "1.6.0",
 		"module-alias": "^2.2.2",
-		"mwn": "^1.11.4",
+		"mwn": "^2.0.0",
 		"mysql": "^2.18.1",
 		"redis": "^4.6.12",
 		"serve-index": "^1.9.1",
