@@ -82,8 +82,8 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		'.mw-editsection',
 		// {{AFC comment}}
 		'.afc-comment',
-		
-		// 其他
+
+		// #其他
 		// 討論頁工具
 		// .ext-discussiontools-init-section 出現在 .mw-heading
 		// .ext-discussiontools-init-timestamplink 出現在簽名時間戳
