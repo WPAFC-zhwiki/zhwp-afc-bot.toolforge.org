@@ -47,13 +47,13 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		'h3',
 		'h4',
 		'h5',
-		'h6'
+		'h6',
 
 		// #id
 		// 小作品標籤
 		'#stub',
 		// 目錄
-		'#toc'
+		'#toc',
 
 		// #class
 		// NoteTA
@@ -81,7 +81,7 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		// edit
 		'.mw-editsection',
 		// {{AFC comment}}
-		'.afc-comment'
+		'.afc-comment',
 		
 		// 其他
 		// 討論頁工具
