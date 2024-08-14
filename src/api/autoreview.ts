@@ -31,72 +31,66 @@ export async function init() {
 }
 
 function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNode> ) {
-	const delval = {
-		tags: [
-			// 表格
-			'table',
-			'tbody',
-			'td',
-			'tr',
-			'th',
-			// 樣式
-			'style',
-			// 標題常常解析出一堆亂象
-			'h1',
-			'h2',
-			'h3',
-			'h4',
-			'h5',
-			'h6'
-		],
-		ids: [
-			// 小作品標籤
-			'stub',
-			// 目錄
-			'toc'
-		],
-		classes: [
-			// NoteTA
-			'noteTA',
-			// 表格
-			'infobox',
-			'wikitable',
-			'navbox',
-			// <syntaxhighlight>
-			'mw-highlight',
-			// 圖片說明
-			'thumb',
-			// <reference />
-			'reflist',
-			'references',
-			'reference',
-			// 不印出來的
-			'noprint',
-			// 消歧義
-			'hatnote',
-			'navigation-not-searchable',
-			// 目錄
-			'toc',
-			// edit
-			'mw-editsection',
-			// {{AFC comment}}
-			'afc-comment'
-		]
-	};
+	const removeSelectors = [
+		// #tag
+		// 表格
+		'table',
+		'tbody',
+		'td',
+		'tr',
+		'th',
+		// 樣式
+		'style',
+		// 標題常常解析出一堆亂象
+		'h1',
+		'h2',
+		'h3',
+		'h4',
+		'h5',
+		'h6'
+
+		// #id
+		// 小作品標籤
+		'#stub',
+		// 目錄
+		'#toc'
+
+		// #class
+		// NoteTA
+		'.noteTA',
+		// 表格
+		'.infobox',
+		'.wikitable',
+		'.navbox',
+		// <syntaxhighlight>
+		'.mw-highlight',
+		// 圖片說明
+		'.thumb',
+		// <reference />
+		'.reflist',
+		'.references',
+		'.reference',
+		// 不印出來的
+		'.noprint',
+		'.hide-when-compact', // 主要出現在 ambox
+		// 消歧義
+		'.hatnote',
+		'.navigation-not-searchable',
+		// 目錄
+		'.toc',
+		// edit
+		'.mw-editsection',
+		// {{AFC comment}}
+		'.afc-comment'
+		
+		// 其他
+		// 討論頁工具
+		// .ext-discussiontools-init-section 出現在 .mw-heading
+		// .ext-discussiontools-init-timestamplink 出現在簽名時間戳
+		'[class^=ext-discussiontools-init-]:not(.ext-discussiontools-init-section, .ext-discussiontools-init-timestamplink)'
+	];
 	const $countHTML = $parseHTML.clone();
-	$countHTML.find( function () {
-		let selector = '';
-		delval.tags.forEach( function ( tag ) {
-			selector += selector === '' ? tag : `, ${ tag }`;
-		} );
-		delval.ids.forEach( function ( id ) {
-			selector += `, #${ id }`;
-		} );
-		delval.classes.forEach( function ( thisclass ) {
-			selector += `, .${ thisclass }`;
-		} );
-		return selector;
-	}() ).remove();
+	$countHTML.find( removeSelectors.join( ',' ) ).remove();
 	const countText = $countHTML.text().replace( /\n/g, '' );
 	const issues = [];
 	const refs = {
