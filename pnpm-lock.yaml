@@ -55,7 +55,7 @@ dependencies:
     version: 1.9.1
   winston:
     specifier: ^3.8.1
-    version: 3.14.1
+    version: 3.14.2
 
 devDependencies:
   '@types/express':
@@ -211,7 +211,7 @@ packages:
       debug: 4.3.6
       espree: 9.6.1
       globals: 13.24.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       minimatch: 3.1.2
@@ -262,8 +262,8 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.0
     dev: true
 
-  /@mdn/browser-compat-data@5.5.45:
-    resolution: {integrity: sha512-ZSQFGihUPlFxG2S9sUWS2tjDKQNTVVEgN62Au5yFcnbYsC183T1JrLz6I5H467Hw8WMCjwRuOEFQSpBW6IvZCg==}
+  /@mdn/browser-compat-data@5.5.46:
+    resolution: {integrity: sha512-FTcBvYkPLJWfWjfAYTKUyY+cRW6pB7DDOAqZnN7Q10kYNHYK8FefKGLhsM1jcWlmXb+ClSxpF77jr5fzUZaJbw==}
     dev: true
 
   /@nodelib/fs.scandir@2.1.5:
@@ -509,7 +509,7 @@ packages:
       debug: 4.3.6
       eslint: 8.57.0
       graphemer: 1.4.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       natural-compare: 1.4.0
       semver: 7.6.3
       ts-api-utils: 1.3.0(typescript@5.5.4)
@@ -877,7 +877,7 @@ packages:
   /ast-metadata-inferer@0.8.0:
     resolution: {integrity: sha512-jOMKcHht9LxYIEQu+RVd22vtgrPaVCtDRQ/16IGmurdzxvYbDd5ynxjnyrzLnieG96eTcAyaoj/wN/4/1FyyeA==}
     dependencies:
-      '@mdn/browser-compat-data': 5.5.45
+      '@mdn/browser-compat-data': 5.5.46
     dev: true
 
   /async@3.2.5:
@@ -985,7 +985,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001651
-      electron-to-chromium: 1.5.6
+      electron-to-chromium: 1.5.11
       node-releases: 2.0.18
       update-browserslist-db: 1.1.0(browserslist@4.23.3)
     dev: true
@@ -1429,8 +1429,8 @@ packages:
       jake: 10.9.2
     dev: true
 
-  /electron-to-chromium@1.5.6:
-    resolution: {integrity: sha512-jwXWsM5RPf6j9dPYzaorcBSUg6AiqocPEyMpkchkvntaH9HGfOOMZwxMJjDY/XEs3T5dM7uyH1VhRMkqUU9qVw==}
+  /electron-to-chromium@1.5.11:
+    resolution: {integrity: sha512-R1CccCDYqndR25CaXFd6hp/u9RaaMcftMkphmvuepXr5b1vfLkRml6aWVeBhXJ7rbevHkKEMJtz8XqPf7ffmew==}
     dev: true
 
   /emoji-regex@8.0.0:
@@ -1668,7 +1668,7 @@ packages:
     peerDependencies:
       eslint: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
-      '@mdn/browser-compat-data': 5.5.45
+      '@mdn/browser-compat-data': 5.5.46
       ast-metadata-inferer: 0.8.0
       browserslist: 4.23.3
       caniuse-lite: 1.0.30001651
@@ -1803,7 +1803,7 @@ packages:
       eslint: 8.57.0
       eslint-plugin-es: 3.0.1(eslint@8.57.0)
       eslint-utils: 2.1.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       minimatch: 3.1.2
       resolve: 1.22.8
       semver: 6.3.1
@@ -1858,7 +1858,7 @@ packages:
       eslint-utils: 3.0.0(eslint@8.57.0)
       natural-compare: 1.4.0
       nth-check: 2.1.1
-      postcss-selector-parser: 6.1.1
+      postcss-selector-parser: 6.1.2
       semver: 7.6.3
       vue-eslint-parser: 8.3.0(eslint@8.57.0)
     transitivePeerDependencies:
@@ -1955,7 +1955,7 @@ packages:
       glob-parent: 6.0.2
       globals: 13.24.0
       graphemer: 1.4.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       imurmurhash: 0.1.4
       is-glob: 4.0.3
       is-path-inside: 3.0.3
@@ -2306,7 +2306,7 @@ packages:
       array-union: 2.1.0
       dir-glob: 3.0.1
       fast-glob: 3.3.2
-      ignore: 5.3.1
+      ignore: 5.3.2
       merge2: 1.4.1
       slash: 3.0.0
     dev: true
@@ -2317,7 +2317,7 @@ packages:
     dependencies:
       dir-glob: 3.0.1
       fast-glob: 3.3.2
-      ignore: 5.3.1
+      ignore: 5.3.2
       merge2: 1.4.1
       slash: 4.0.0
     dev: true
@@ -2427,8 +2427,8 @@ packages:
       safer-buffer: 2.1.2
     dev: false
 
-  /ignore@5.3.1:
-    resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
+  /ignore@5.3.2:
+    resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
     dev: true
 
@@ -3127,8 +3127,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /postcss-selector-parser@6.1.1:
-    resolution: {integrity: sha512-b4dlw/9V8A71rLIDsSwVmak9z2DuBUB7CA1/wSdelNEzqsjoSPeADTWNO09lpH49Diy3/JIZ2bSPB1dI3LJCHg==}
+  /postcss-selector-parser@6.1.2:
+    resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
     engines: {node: '>=4'}
     dependencies:
       cssesc: 3.0.0
@@ -3996,8 +3996,8 @@ packages:
       triple-beam: 1.4.1
     dev: false
 
-  /winston@3.14.1:
-    resolution: {integrity: sha512-CJi4Il/msz8HkdDfXOMu+r5Au/oyEjFiOZzbX2d23hRLY0narGjqfE5lFlrT5hfYJhPtM8b85/GNFsxIML/RVA==}
+  /winston@3.14.2:
+    resolution: {integrity: sha512-CO8cdpBB2yqzEf8v895L+GNKYJiEq8eKlHU38af3snQBQ+sdAIUepjMSguOIJC7ICbzm0ZI+Af2If4vIJrtmOg==}
     engines: {node: '>= 12.0.0'}
     dependencies:
       '@colors/colors': 1.6.0
