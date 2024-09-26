@@ -63,7 +63,7 @@ devDependencies:
     version: 4.17.21
   '@types/express-serve-static-core':
     specifier: ^4.17.35
-    version: 4.19.5
+    version: 4.19.6
   '@types/iniparser':
     specifier: ^0.0.32
     version: 0.0.32
@@ -374,8 +374,8 @@ packages:
       '@types/node': 18.19.50
     dev: true
 
-  /@types/express-serve-static-core@4.19.5:
-    resolution: {integrity: sha512-y6W03tvrACO72aijJ5uF02FRq5cgDR9lUxddQ8vyF+GvmjJQqbzDcJngEjURc+ZsG31VI3hODNZJ2URj86pzmg==}
+  /@types/express-serve-static-core@4.19.6:
+    resolution: {integrity: sha512-N4LZ2xG7DatVqhCZzOGb1Yi5lMbXSZcmdLDe9EzSndPV2HpWYWzRbaerl2n27irrm94EPpprqa8KpskPT085+A==}
     dependencies:
       '@types/node': 18.19.50
       '@types/qs': 6.9.16
@@ -387,7 +387,7 @@ packages:
     resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
     dependencies:
       '@types/body-parser': 1.19.5
-      '@types/express-serve-static-core': 4.19.5
+      '@types/express-serve-static-core': 4.19.6
       '@types/qs': 6.9.16
       '@types/serve-static': 1.15.7
     dev: true
