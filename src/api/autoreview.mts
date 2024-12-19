@@ -1,31 +1,31 @@
-import cheerio = require( 'cheerio' );
-import express = require( 'express' );
-import util = require( 'util' );
-import winston = require( 'winston' );
+import { inspect } from 'node:util';
 
-import { ApiParams, ApiRevision, mwn, MwnTitle } from 'mwn';
-import { ApiQueryRevisionsParams } from 'mwn/build/api_params';
-import type { RawRequestParams } from 'mwn/build/core';
+import { AxiosRequestConfig } from 'axios';
+import * as cheerio from 'cheerio';
+import express from 'express';
+import { ApiParams, ApiRevision, Mwn, MwnTitle } from 'mwn';
+import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import winston from 'winston';
 
-import { methodNoAllow } from '@app/utils';
-import { getWithCacheAsync } from '@app/cache';
+import { getWithCacheAsync } from '@app/cache/index.mjs';
+import { methodNoAllow } from '@app/utils.mjs';
 
 const $ = cheerio.load( '' );
 
-let mwbot: mwn;
+let mwbot: Mwn;
 
-let abortController: AbortController | null;
+let abortController: AbortController | undefined;
 
 export async function init() {
-	// eslint-disable-next-line new-cap
-	mwbot = new mwn( {
-		apiUrl: 'https://zh.wikipedia.org/w/api.php'
+
+	mwbot = new Mwn( {
+		apiUrl: 'https://zh.wikipedia.org/w/api.php',
 	} );
-	mwbot.rawRequest = function ( requestOptions: RawRequestParams ) {
+	mwbot.rawRequest = function ( requestOptions: AxiosRequestConfig ) {
 		if ( abortController ) {
 			requestOptions.signal = abortController.signal;
 		}
-		return mwn.prototype.rawRequest.call( this, requestOptions );
+		return Mwn.prototype.rawRequest.call( this, requestOptions );
 	};
 	await mwbot.getSiteInfo();
 }
@@ -87,23 +87,23 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		// 討論頁工具
 		// .ext-discussiontools-init-section 出現在 .mw-heading
 		// .ext-discussiontools-init-timestamplink 出現在簽名時間戳
-		'[class^=ext-discussiontools-init-]:not(.ext-discussiontools-init-section, .ext-discussiontools-init-timestamplink)'
+		'[class^=ext-discussiontools-init-]:not(.ext-discussiontools-init-section, .ext-discussiontools-init-timestamplink)',
 	];
 	const $countHTML = $parseHTML.clone();
 	$countHTML.find( removeSelectors.join( ',' ) ).remove();
-	const countText = $countHTML.text().replace( /\n/g, '' );
+	const countText = $countHTML.text().replaceAll( '\n', '' );
 	const issues = [];
-	const refs = {
-		wt: ( wikitext.match( /<ref.*?>.*?<\/ref>/gi ) ?? [] ).map( function ( x, i ) {
-			return [ String( i ), x ];
+	const references = {
+		wt: ( wikitext.match( /<ref.*?>.*?<\/ref>/gi ) ?? [] ).map( function ( x, index ) {
+			return [ String( index ), x ];
 		} ),
-		$ele: $parseHTML.find( 'ol.references' )
+		$ele: $parseHTML.find( 'ol.references' ),
 	};
-	refs.$ele.find( '.mw-cite-backlink' ).remove();
-	wikitext.replace( /<ref.*?>.*?<\/ref>/gi, '' );
-	const extlink = $parseHTML.find( 'a' ).filter( function ( _i, a ) {
+	references.$ele.find( '.mw-cite-backlink' ).remove();
+	wikitext.replaceAll( /<ref.*?>.*?<\/ref>/gi, '' );
+	const extlink = $parseHTML.find( 'a' ).filter( function ( _index, a ) {
 		try {
-			return !$( a ).parents( '.ambox, .ombox, .fmbox, .dmbox, .stub, .afc-comment' ).length &&
+			return $( a ).parents( '.ambox, .ombox, .fmbox, .dmbox, .stub, .afc-comment' ).length === 0 &&
 				new URL( $( a ).attr( 'href' ) ?? '', 'https://zh.wikipedia.org/' ).hostname !== 'zh.wikipedia.org';
 		} catch {
 			return false;
@@ -114,37 +114,38 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 	const elements = {
 		intLinks: wikitext.match( /\[\[.*?\]\]/g ),
 		refs: {
-			all: refs,
+			all: references,
 
-			default: refs.wt.filter( function ( [ _i, x ] ) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			default: references.wt.filter( function ( [ _index, x ] ) {
 				return !/group=/i.test( String( x ) );
 			} ),
-			$references: refs.$ele.filter( function ( _i, ele ) {
-				return !!$( ele ).find( 'a, cite.citation' ).length;
+			$references: references.$ele.filter( function ( _index, ele ) {
+				return $( ele ).find( 'a, cite.citation' ).length > 0;
 			} ),
-			$disallowed: refs.$ele.filter( function ( _i, ele ) {
-				return !!String( $( ele ).html() )
-					.match( /baike\.baidu\.com|百度|quora\.com|toutiao\.com|pincong\.rocks|zhihu\.com|知乎/ );
+			$disallowed: references.$ele.filter( function ( _index, ele ) {
+				return !!/baike\.baidu\.com|百度|quora\.com|toutiao\.com|pincong\.rocks|zhihu\.com|知乎/
+					.test( String( $( ele ).html() ) );
 			} ),
-			$unreliable: refs.$ele.filter( function ( _i, ele ) {
-				return !!String( $( ele ).html() )
-					.match( /百家[号號]|baijiahao\.baidu\.com|bigexam\.hk|boxun\.com|bowenpress\.com|hkgpao.com|peopo\.org|qyer\.com|speakout\.hk|songshuhui\.net|youtube\.com|youtu\.be|acfun\.cn|bilibili\.com/ );
-			} )
+			$unreliable: references.$ele.filter( function ( _index, ele ) {
+				return !!/百家[号號]|baijiahao\.baidu\.com|bigexam\.hk|boxun\.com|bowenpress\.com|hkgpao.com|peopo\.org|qyer\.com|speakout\.hk|songshuhui\.net|youtube\.com|youtu\.be|acfun\.cn|bilibili\.com/
+					.test( String( $( ele ).html() ) );
+			} ),
 		},
 		extlinks: extlink,
-		cats: wikitext.match( /\[\[(?:[Cc]at|[Cc]ategory|分[类類]):/gi ) ?? []
+		cats: wikitext.match( /\[\[(?:[Cc]at|[Cc]ategory|分[类類]):/gi ) ?? [],
 	};
-	if ( !elements.extlinks.length ) {
+	if ( elements.extlinks.length === 0 ) {
 		issues.push( 'no-extlink' );
 	}
-	const contentLen = countText.length - ( countText.match( /\p{L}/iu )?.length ?? 0 ) * 0.5;
-	if ( contentLen === 0 ) {
+	const contentLength = countText.length - ( countText.match( /\p{L}/iu )?.length ?? 0 ) * 0.5;
+	if ( contentLength === 0 ) {
 		issues.push( 'size-zero' );
-	} else if ( contentLen <= 50 ) {
+	} else if ( contentLength <= 50 ) {
 		issues.push( 'substub' );
-	} else if ( contentLen <= 220 ) {
+	} else if ( contentLength <= 220 ) {
 		issues.push( 'stub' );
-	} else if ( contentLen >= 15000 ) {
+	} else if ( contentLength >= 15_000 ) {
 		issues.push( 'lengthy' );
 	}
 	if ( !/\[\[|\{\{|\{\||==|<ref|''|<code|<pre|<source|\[http|\|-|\|}|^[*#]/.test( wikitext ) ) {
@@ -154,13 +155,13 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		issues.push( 'unreferenced' );
 	} else {
 
-		if ( elements.refs.$references.length < Math.min( Math.ceil( contentLen / 300 ) + 0.1, 20 ) ) {
+		if ( elements.refs.$references.length < Math.min( Math.ceil( contentLength / 300 ) + 0.1, 20 ) ) {
 			issues.push( 'ref-improve' );
 		}
-		if ( elements.refs.$disallowed.length ) {
+		if ( elements.refs.$disallowed.length > 0 ) {
 			issues.push( 'ref-disallowed' );
 		}
-		if ( elements.refs.$unreliable.length ) {
+		if ( elements.refs.$unreliable.length > 0 ) {
 			issues.push( 'ref-unreliable' );
 		}
 		if (
@@ -174,21 +175,20 @@ function autoReview( wikitext: string, $parseHTML: cheerio.Cheerio<cheerio.AnyNo
 		issues.push( 'uncategorized' );
 	}
 	const em = wikitext
-		.replace( /<ref.*?<\/ref>/g, '' )
+		.replaceAll( /<ref.*?<\/ref>/g, '' )
 		.match( /(?:''|<(?:em|i|b)>|【)(?:.*?)(?:''|<\/(?:em|i|b)>|】)/g ) ?? [];
 	const emCnt = em.length;
 	if ( emCnt > ( wikitext.match( /==(?:.*?)==/g ) || [] ).length ) {
 		issues.push( 'over-emphasize' );
 	}
 	if (
-		wikitext.split( '\n' ).filter( function ( x ) {
+		wikitext.split( '\n' ).some( function ( x ) {
 			return x.match( /^\s+(?!$)/ );
-		} ).length &&
-		$parseHTML.find( 'pre' ).filter( function ( _i, ele ) {
+		} ) &&
+		$parseHTML.find( 'pre' ).get().some( function ( ele ) {
 			const $parent: cheerio.Cheerio<cheerio.Element> = $( ele ).parent().eq( 0 );
-			// eslint-disable-next-line no-jquery/no-class-state
 			return !$parent.hasClass( 'mw-highlight' );
-		} ).length
+		} )
 	) {
 		issues.push( 'bad-indents' );
 	}
@@ -208,9 +208,9 @@ interface ApiPage {
 	title: string;
 }
 
-export async function onRequest( req: express.Request, res: express.Response ) {
-	if ( req.method.toUpperCase() !== 'GET' ) {
-		return methodNoAllow( req, res );
+export async function onRequest( request: express.Request, response: express.Response ) {
+	if ( request.method.toUpperCase() !== 'GET' ) {
+		return methodNoAllow( request, response );
 	}
 	abortController = new AbortController();
 
@@ -220,84 +220,84 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 			return;
 		}
 		try {
-			res.status( code );
+			response.status( code );
 			if ( code < 400 ) {
-				res.setHeader(
+				response.setHeader(
 					'Cache-Control',
 					isRequestByPage ? 'max-age=172800, must-revalidate' : 'max-age=172800'
 				);
 			}
-			res.jsonp( json );
-			res.end();
+			response.jsonp( json );
+			response.end();
 		} finally {
 			abortController.abort();
-			req.clearTimeout();
-			abortController = null;
+			request.clearTimeout();
+			abortController = undefined;
 		}
 	}
 
-	req.on( 'timeout', function () {
+	request.on( 'timeout', function () {
 		doOutput( 503, {
 			status: 503,
-			error: 'Timeout.'
+			error: 'Timeout.',
 		} );
 	} );
-	res.hasTimeoutResponse = true;
+	response.hasTimeoutResponse = true;
 
-	const query = new URLSearchParams( Object.entries( req.query ) as string[][] );
-	const requestParam: ApiQueryRevisionsParams = {
+	const query = new URLSearchParams( Object.entries( request.query ) as string[][] );
+	const requestParameter: ApiQueryRevisionsParams = {
 		action: 'query',
 		prop: 'revisions',
 		indexpageids: true,
 		rvprop: [ 'ids', 'content', 'contentmodel' ],
 		rvslots: 'main',
-		formatversion: '2'
+		formatversion: '2',
 	};
 	let requestInfo;
 	try {
 		if ( query.has( 'revid' ) && query.get( 'revid' ) ) {
-			const revid = query.get( 'revid' ) ?? '';
-			if ( revid.match( /[|,]/ ) ) {
+			const revId = query.get( 'revid' ) ?? '';
+			if ( /[|,]/.test( revId ) ) {
 				throw new Error( 'Only allow one revision in a request.' );
-			} else if ( Number.isNaN( +revid ) || !Number.isInteger( +revid ) || revid.includes( '-' ) ) {
-				throw new Error( `Revid "${ revid }" is invalid.` );
+			} else if ( Number.isNaN( +revId ) || !Number.isInteger( +revId ) || revId.includes( '-' ) ) {
+				throw new Error( `RevId "${ revId }" is invalid.` );
 			}
-			requestParam.revids = +revid;
-			requestInfo = 'Revid ' + String( requestParam.revids );
+			requestParameter.revids = +revId;
+			requestInfo = 'RevId ' + String( requestParameter.revids );
 		} else if ( query.has( 'pageid' ) && query.get( 'pageid' ) ) {
-			const pageid = query.get( 'pageid' ) ?? '';
-			if ( pageid.match( /[|,]/ ) ) {
+			const pageId = query.get( 'pageid' ) ?? '';
+			if ( /[|,]/.test( pageId ) ) {
 				throw new Error( 'Only allow one page in a request.' );
-			} else if ( Number.isNaN( +pageid ) || !Number.isInteger( +pageid ) || pageid.includes( '-' ) ) {
-				throw new Error( `Pageid "${ pageid }" invalid.` );
+			} else if ( Number.isNaN( +pageId ) || !Number.isInteger( +pageId ) || pageId.includes( '-' ) ) {
+				throw new Error( `PageId "${ pageId }" invalid.` );
 			}
 			isRequestByPage = true;
-			requestParam.pageids = +pageid;
-			requestInfo = `Pageid ${ String( requestParam.pageids ) }`;
+			requestParameter.pageids = +pageId;
+			requestInfo = `PageId ${ String( requestParameter.pageids ) }`;
 		} else if ( query.has( 'title' ) && query.get( 'title' ) ) {
 			const title = query.get( 'title' ) ?? '';
 			let mTitle: MwnTitle;
 			try {
-				// eslint-disable-next-line new-cap
-				mTitle = new mwbot.title( title );
-			} catch ( e ) {
+
+				mTitle = new mwbot.Title( title );
+			} catch {
 				throw new Error( `Title "${ title }" invalid.` );
 			}
 			isRequestByPage = true;
-			requestParam.titles = mTitle.toText();
-			requestInfo = `Title "${ requestParam.titles }"`;
+			requestParameter.titles = mTitle.toText();
+			requestInfo = `Title "${ requestParameter.titles }"`;
 		} else {
 			throw new Error( 'At least one of the parameters "revid", "pageid" and "title" is required.' );
 		}
 	} catch ( error ) {
 		doOutput( 400, {
 			status: 400,
-			error: error instanceof Error ? error.message : 'Parse request fail.'
+			error: error instanceof Error ? error.message : 'Parse request fail.',
 		} );
 		return;
 	}
 	try {
-		const { query: apiQuery } = await mwbot.request( requestParam as ApiParams ) as ApiQueryRevisionsResponse;
+		const { query: apiQuery } = await mwbot.request( requestParameter as ApiParams ) as ApiQueryRevisionsResponse;
 		if ( !apiQuery ) {
 			throw new Error( 'Fail to get page info.' );
 		}
@@ -309,7 +309,7 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		} else if ( rev.slots?.main.contentmodel !== 'wikitext' ) {
 			doOutput( 422, {
 				status: 422,
-				error: `Can't autoreview content model "${ rev.slots?.main.contentmodel }".`
+				error: `Can't autoreview content model "${ rev.slots?.main.contentmodel }".`,
 			} );
 			return;
 		}
@@ -330,21 +330,21 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 					title: page.title,
 					pageid: pageid,
 					oldid: rev.revid,
-					issues: issues
-				}
+					issues: issues,
+				},
 			} );
 		} else {
-			winston.error( `[api/autoreview] getWithCacheAsync return ${ util.inspect( issues ) }.` );
+			winston.error( `[api/autoreview] getWithCacheAsync return ${ inspect( issues ) }.` );
 			doOutput( 502, {
 				status: 502,
-				error: 'Bad gateway.'
+				error: 'Bad gateway.',
 			} );
 		}
 	} catch ( error ) {
-		winston.error( `[api/autoreview] ${ util.inspect( error ) }` );
+		winston.error( `[api/autoreview] ${ inspect( error ) }` );
 		doOutput( 500, {
 			status: 500,
-			error: error instanceof Error ? error.message : 'Request fail.'
+			error: error instanceof Error ? error.message : 'Request fail.',
 		} );
 	}
 }

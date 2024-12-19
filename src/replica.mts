@@ -1,11 +1,11 @@
-import fs = require( 'node:fs' );
-import os = require( 'node:os' );
-import path = require( 'node:path' );
-import util = require( 'node:util' );
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { inspect } from 'node:util';
 
-import iniparser = require( 'iniparser' );
-import winston = require( 'winston' );
-import mysql = require( 'mysql' );
+import iniparser from 'iniparser';
+import mysql from 'mysql';
+import winston from 'winston';
 
 export const isReplicaQueryEnable = !!process.env.ENABLE_REPLICA_QUERY && process.env.ENABLE_REPLICA_QUERY !== '0';
 
@@ -14,28 +14,30 @@ let pool: mysql.Pool;
 async function init() {
 	if ( isReplicaQueryEnable && !pool ) {
 		const configFile = path.join( os.homedir(), 'replica.my.cnf' );
+		// eslint-disable-next-line security/detect-non-literal-fs-filename
 		if ( !fs.existsSync( configFile ) ) {
 			throw new Error( '~/replica.my.cnf no found.' );
 		}
-		const dbCfg: {
+		const databaseCfg: {
 			client: {
 				user: string;
 				password: string;
 			};
-		} = iniparser.parseString( await fs.promises.readFile( configFile, { encoding: 'utf-8' } ) );
+		// eslint-disable-next-line security/detect-non-literal-fs-filename
+		} = iniparser.parseString( await fs.promises.readFile( configFile, { encoding: 'utf8' } ) );
 		pool = mysql.createPool( {
 			host: 'zhwiki.web.db.svc.eqiad.wmflabs',
-			user: dbCfg.client.user,
-			password: dbCfg.client.password,
+			user: databaseCfg.client.user,
+			password: databaseCfg.client.password,
 			database: 'zhwiki_p',
 			charset: 'utf8mb4_unicode_ci',
 			timezone: 'Z',
-			connectTimeout: 10000,
+			connectTimeout: 10_000,
 			connectionLimit: 5,
-			queueLimit: 5
+			queueLimit: 5,
 		} );
 		const pendingThreadIds = new Map<number, NodeJS.Timeout>();
-		pool.on( 'error', ( error ) => winston.error( `[replica] Pool error: ${ util.inspect( error ) }.` ) );
+		pool.on( 'error', ( error ) => winston.error( `[replica] Pool error: ${ inspect( error ) }.` ) );
 		pool.on( 'connection', ( connection: mysql.PoolConnection ) => {
 			const threadId = connection.threadId;
 			winston.debug( `[replica] mysql event connection: ${ threadId }` );
@@ -66,9 +68,9 @@ async function init() {
 	}
 }
 
-export async function getDatabase(): Promise<mysql.PoolConnection|null> {
+export async function getDatabase(): Promise<mysql.PoolConnection | null> {
 	if ( !isReplicaQueryEnable ) {
-		return Promise.reject( new Error( 'Replica query is disabled.' ) );
+		throw new Error( 'Replica query is disabled.' );
 	}
 
 	await init();
@@ -96,7 +98,7 @@ export async function doReplicaQuery<R>( sql: string, values?: string[] ): Promi
 			conn.query(
 				{
 					sql,
-					values
+					values,
 				},
 				( error, result, fields ) => {
 					conn.release();
@@ -110,5 +112,5 @@ export async function doReplicaQuery<R>( sql: string, values?: string[] ): Promi
 		} );
 	}
 
-	return Promise.reject( new Error( 'Replica query is disabled.' ) );
+	throw new Error( 'Replica query is disabled.' );
 }

@@ -1,57 +1,55 @@
-import util = require( 'node:util' );
+import { inspect } from 'node:util';
 
-import express = require( 'express' );
-import winston = require( 'winston' );
+import express from 'express';
+import winston from 'winston';
 
-import * as utils from '@app/utils';
-import { getWithCacheAsync, removeCachedItem } from '@app/cache';
-import { doReplicaQuery, isReplicaQueryEnable } from '@app/replica';
+import { getWithCacheAsync, removeCachedItem } from '@app/cache/index.mjs';
+import { doReplicaQuery, isReplicaQueryEnable } from '@app/replica.mjs';
+import * as utils from '@app/utils.mjs';
 
 function withBufferToStringJSONStringify( json: unknown ) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 	const oldBufferToJSON = Buffer.prototype.toJSON;
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
 	Buffer.prototype.toJSON = function ( this: Buffer ) {
-		return this.toString( 'utf-8' );
+		return this.toString( 'utf8' );
 	};
 	try {
 		return JSON.stringify( json );
 	} finally {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		Buffer.prototype.toJSON = oldBufferToJSON;
 	}
 }
 
-export async function onRequest( req: express.Request, res: express.Response ) {
+export async function onRequest( request: express.Request, response: express.Response ) {
 	const apiVersion = 1;
 
-	if ( req.method.toUpperCase() !== 'GET' && req.method.toUpperCase() !== 'POST' ) {
-		return utils.methodNoAllow( req, res, apiVersion );
+	if ( request.method.toUpperCase() !== 'GET' && request.method.toUpperCase() !== 'POST' ) {
+		return utils.methodNoAllow( request, response, apiVersion );
 	}
 	if ( !isReplicaQueryEnable ) {
-		return utils.replicaAccessDisabled( req, res, apiVersion );
+		return utils.replicaAccessDisabled( request, response, apiVersion );
 	}
 
 	function sendBroken() {
-		utils.internalServerError( req, res, apiVersion );
+		utils.internalServerError( request, response, apiVersion );
 	}
 
 	const cacheName = 'api/reviewer-data/data';
-	if ( new URL( req.url, utils.origin ).searchParams.has( 'purge' ) ) {
+	if ( new URL( request.url, utils.origin ).searchParams.has( 'purge' ) ) {
 		await removeCachedItem( cacheName );
-		return utils.movedPermanently( new URL( req.originalUrl, utils.origin ).pathname, req, res );
+		return utils.movedPermanently( new URL( request.originalUrl, utils.origin ).pathname, request, response );
 	}
-	const reqSplit = new URL( req.originalUrl, utils.origin ).pathname.split( '/' ).filter( ( v ) => v ); // [ 'api', 'reviewer-data', ... ]
-	if ( reqSplit.length === 3 ) {
-		if ( reqSplit.length > 3 || reqSplit[ 2 ] !== 'purge' ) {
-			return utils.badRequest( req, res, apiVersion );
-		} else if ( req.method.toUpperCase() !== 'POST' ) {
-			return utils.methodNoAllow( req, res, apiVersion );
+	const requestSplit = new URL( request.originalUrl, utils.origin ).pathname.split( '/' ).filter( Boolean ); // [ 'api', 'reviewer-data', ... ]
+	if ( requestSplit.length === 3 ) {
+		if ( requestSplit.length > 3 || requestSplit[ 2 ] !== 'purge' ) {
+			return utils.badRequest( request, response, apiVersion );
+		} else if ( request.method.toUpperCase() !== 'POST' ) {
+			return utils.methodNoAllow( request, response, apiVersion );
 		}
 		await removeCachedItem( cacheName );
-		res.status( 204 );
-		res.setHeader( 'Cache-Control', 'no-store' );
-		res.end();
+		response.status( 204 );
+		response.setHeader( 'Cache-Control', 'no-store' );
+		response.end();
 		return;
 	}
 
@@ -60,7 +58,8 @@ export async function onRequest( req: express.Request, res: express.Response ) {
 		60 * 60 * 1000,
 		async () => {
 			try {
-				const queryResults = ( await doReplicaQuery( '\
+				const queryResults = (
+					await doReplicaQuery( '\
 SELECT \
 	COUNT(`rc_id`) AS `reviews`, \
 	`actor_name` as `user`, \
@@ -78,47 +77,49 @@ WHERE \
 	AND (`comment_text` LIKE "%发布已接受的[[PJ:AFC|条目建立]]草稿%" OR `comment_text` LIKE "%發布已接受的[[PJ:AFC|條目建立]]草稿%" OR `comment_text` LIKE "%仍需改善的草稿%" OR `comment_text` LIKE "%拒绝再次提交的草稿%" OR `comment_text` LIKE "%拒絕再次提交的草稿%") \
 	AND (`rc_timestamp` >= DATE_ADD(NOW(), INTERVAL -28 DAY) ) \
 GROUP BY `rc_actor` ORDER BY `reviews` DESC; \
-				' ) ).result;
-				if ( req.isTimeOut ) {
-					return null;
+				' )
+				// eslint-disable-next-line unicorn/no-await-expression-member
+				).result;
+				if ( request.isTimeOut ) {
+					return;
 				}
 				if ( !Array.isArray( queryResults ) ) {
-					winston.error( `[reviewer/reviewer-data] Unknown response: ${ util.inspect( queryResults ) }.` );
+					winston.error( `[reviewer/reviewer-data] Unknown response: ${ inspect( queryResults ) }.` );
 					sendBroken();
-					return null;
+					return;
 				}
 				try {
 					return [
 						new Date().toISOString(),
-						JSON.parse( withBufferToStringJSONStringify( queryResults ) ) as unknown
+						JSON.parse( withBufferToStringJSONStringify( queryResults ) ) as unknown,
 					];
 				} catch ( parseDataError ) {
-					winston.error( `[api/reviewer-data] Unknown error when parse data: ${ util.inspect( parseDataError ) }.` );
+					winston.error( `[api/reviewer-data] Unknown error when parse data: ${ inspect( parseDataError ) }.` );
 					sendBroken();
-					return null;
+					return;
 				}
 			} catch ( queryError ) {
-				winston.error( `[api/reviewer-data] Unknown error when query data: ${ util.inspect( queryError ) }.` );
+				winston.error( `[api/reviewer-data] Unknown error when query data: ${ inspect( queryError ) }.` );
 				sendBroken();
-				return null;
+				return;
 			}
 		}
 	);
 
-	if ( !req.isTimeOut ) {
+	if ( !request.isTimeOut ) {
 		if ( returnValue ) {
-			res.status( 200 );
-			res.setHeader( 'Cache-Control', 'max-age=0, must-revalidate' );
-			res.json( {
+			response.status( 200 );
+			response.setHeader( 'Cache-Control', 'max-age=0, must-revalidate' );
+			response.json( {
 				apiVersion,
 				dataTimestamp: returnValue[ 0 ],
-				reviewerData: returnValue[ 1 ]
+				reviewerData: returnValue[ 1 ],
 			} );
-			res.end();
+			response.end();
 		}
 
-		if ( !res.writableEnded ) {
-			return utils.badGateway( req, res, apiVersion );
+		if ( !response.writableEnded ) {
+			return utils.badGateway( request, response, apiVersion );
 		}
 	}
 }

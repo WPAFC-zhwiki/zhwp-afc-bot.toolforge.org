@@ -1,7 +1,7 @@
-import util = require( 'node:util' );
+import { inspect } from 'node:util';
 
 import { RedisClientOptions, createClient } from 'redis';
-import winston = require( 'winston' );
+import winston from 'winston';
 
 const clientConfig: RedisClientOptions = {};
 if ( process.env.REDIS_URL ) {
@@ -10,26 +10,26 @@ if ( process.env.REDIS_URL ) {
 
 const client = createClient( clientConfig );
 
-client.on( 'error', ( error ) => winston.error( `[cache/redis] Redis Client Error: ${ util.inspect( error ) }` ) );
+client.on( 'error', ( error ) => winston.error( `[cache/redis] Redis Client Error: ${ inspect( error ) }` ) );
 
 const redisKeyPrefix = process.env.REDIS_KEY_PREFIX || '';
 
 export async function getWithCacheAsync<T>(
 	key: string,
 	expiredTime: number,
-	getCallback: () => Promise<T|null>
-): Promise<T|null> {
+	getCallback: () => Promise<T | undefined>
+): Promise<T | undefined> {
 	const cachedValue = await client.get( redisKeyPrefix + key );
 	if ( cachedValue ) {
 		return JSON.parse( cachedValue ) as T;
 	}
 	const value = await getCallback();
-	if ( value !== null ) {
+	if ( value !== undefined ) {
 		client.set(
 			redisKeyPrefix + key,
 			JSON.stringify( value ),
 			{
-				PX: expiredTime
+				PX: expiredTime,
 			}
 		);
 	}

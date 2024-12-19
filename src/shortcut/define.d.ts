@@ -1,6 +1,6 @@
-declare module '@app/shortcut/*' {
-	import express = require( 'express' );
+declare module '@app/shortcut/*.mjs' {
+	import express from 'express';
 
 	export function init(): Promise<void> | void;
-	export function onRequest( req: express.Request, res: express.Response ): Promise<void> | void;
+	export function onRequest( request: express.Request, response: express.Response ): Promise<void> | void;
 }
