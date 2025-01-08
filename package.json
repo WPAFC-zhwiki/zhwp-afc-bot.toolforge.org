@@ -4,7 +4,7 @@
 	"description": "Source Of https://zhwp-afc-bot.toolforge.org",
 	"main": "src/index.js",
 	"scripts": {
-		"start": "node --import ./scripts/loader-register.mjs src/server.mjs",
+		"start": "$NVM_DIR/nvm-exec node --import ./scripts/loader-register.mjs src/server.mjs",
 		"test": "pnpm run build && pnpm run dev",
 		"lint": "eslint src eslint.config.mjs && ejslint views",
 		"build": "tsc",
@@ -35,12 +35,12 @@
 		"express": "^4.18.1",
 		"helmet": "^8.0.0",
 		"iniparser": "^1.0.5",
+		"ioredis": "^5.4.2",
 		"memory-cache": "^0.2.0",
 		"mime": "1.6.0",
 		"module-alias": "^2.2.2",
 		"mwn": "^2.0.0",
 		"mysql": "^2.18.1",
-		"redis": "^4.6.12",
 		"serialize-error": "^11.0.3",
 		"serve-index": "^1.9.1",
 		"winston": "^3.8.1"

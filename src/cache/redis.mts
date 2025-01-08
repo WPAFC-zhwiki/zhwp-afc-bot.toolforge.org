@@ -1,14 +1,19 @@
 import { inspect } from 'node:util';
 
-import { RedisClientOptions, createClient } from 'redis';
+import { RedisOptions, Redis } from 'ioredis';
 import winston from 'winston';
 
-const clientConfig: RedisClientOptions = {};
-if ( process.env.REDIS_URL ) {
-	clientConfig.url = process.env.REDIS_URL;
-}
+const clientConfig: RedisOptions = {
+	lazyConnect: true,
+	reconnectOnError( error ) {
+		if ( String( error ).includes( 'Socket closed unexpectedly' ) ) {
+			return 2;
+		}
 
-const client = createClient( clientConfig );
+		return false;
+	},
+};
+const client = process.env.REDIS_URL ? new Redis( process.env.REDIS_URL, clientConfig ) : new Redis( clientConfig );
 
 client.on( 'error', ( error ) => winston.error( `[cache/redis] Redis Client Error: ${ inspect( error ) }` ) );
 
@@ -28,9 +33,8 @@ export async function getWithCacheAsync<T>(
 		client.set(
 			redisKeyPrefix + key,
 			JSON.stringify( value ),
-			{
-				PX: expiredTime,
-			}
+			'PX',
+			expiredTime
 		);
 	}
 	return value;
