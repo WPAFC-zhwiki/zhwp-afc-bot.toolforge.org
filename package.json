@@ -4,7 +4,7 @@
 	"description": "Source Of https://zhwp-afc-bot.toolforge.org",
 	"main": "src/index.js",
 	"scripts": {
-		"start": "nvm run node --import ./scripts/loader-register.mjs src/server.mjs",
+		"start": "~/.nvm/nvm-exec node --import ./scripts/loader-register.mjs src/server.mjs",
 		"test": "pnpm run build && pnpm run dev",
 		"lint": "eslint src eslint.config.mjs && ejslint views",
 		"build": "tsc",
