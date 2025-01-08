@@ -100,6 +100,19 @@ app.use(
 	}
 );
 
+app.use( '/ping', ( request, response, next ) => {
+	if ( request.originalUrl !== '/ping' ) {
+		next();
+		return;
+	}
+
+	if ( [ 'GET', 'POST' ].includes( request.method ) ) {
+		response.sendStatus( 200 );
+	} else {
+		response.sendStatus( 405 );
+	}
+} );
+
 if ( process.env.FILES_PATH ) {
 	app.use( '/files', express.static( process.env.FILES_PATH ) );
 }
