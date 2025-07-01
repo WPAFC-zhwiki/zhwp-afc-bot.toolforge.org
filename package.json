@@ -27,7 +27,7 @@
 	"homepage": "https://github.com/WPAFC-zhwiki/zhwp-afc-bot.toolforge.org#readme",
 	"packageManager": "pnpm@9.15.9",
 	"dependencies": {
-		"axios": "^0.27.2",
+		"axios": "^0.30.0",
 		"cheerio": "1.0.0-rc.12",
 		"chokidar": "^3.5.3",
 		"dotenv": "^16.0.1",
