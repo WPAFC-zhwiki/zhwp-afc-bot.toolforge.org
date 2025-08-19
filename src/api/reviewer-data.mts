@@ -29,6 +29,10 @@ export async function onRequest( request: express.Request, response: express.Res
 	if ( !isReplicaQueryEnable ) {
 		return utils.replicaAccessDisabled( request, response, apiVersion );
 	}
+	const referrer = request.get( 'referrer' );
+	if ( !referrer || !referrer.startsWith( utils.origin ) ) {
+		return utils.forbidden( request, response, apiVersion );
+	}
 
 	function sendBroken() {
 		utils.internalServerError( request, response, apiVersion );

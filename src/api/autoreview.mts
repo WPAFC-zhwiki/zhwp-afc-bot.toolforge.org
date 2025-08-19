@@ -4,11 +4,12 @@ import { AxiosRequestConfig } from 'axios';
 import * as cheerio from 'cheerio';
 import express from 'express';
 import { ApiParams, ApiRevision, Mwn, MwnTitle } from 'mwn';
-import type { ApiQueryRevisionsParams } from 'types-mediawiki/api_params';
+import mwnPackageJson from 'mwn/package.json' with { type: 'json' };
+import type { ApiQueryRevisionsParams } from 'types-mediawiki-api';
 import winston from 'winston';
 
 import { getWithCacheAsync } from '@app/cache/index.mjs';
-import { methodNoAllow } from '@app/utils.mjs';
+import { userAgent, methodNoAllow } from '@app/utils.mjs';
 
 const $ = cheerio.load( '' );
 
@@ -20,6 +21,7 @@ export async function init() {
 
 	mwbot = new Mwn( {
 		apiUrl: 'https://zh.wikipedia.org/w/api.php',
+		userAgent: `${ userAgent } mwn/${ mwnPackageJson.version }`,
 	} );
 	mwbot.rawRequest = function ( requestOptions: AxiosRequestConfig ) {
 		if ( abortController ) {

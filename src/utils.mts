@@ -8,7 +8,10 @@ import expressPackageJson from 'express/package.json' with { type: 'json' };
 import type { SendFileOptions } from 'express-serve-static-core';
 import winston from 'winston';
 
-export const origin = 'https://zhwp-afc-bot.toolforge.org';
+import packageJson from '../package.json' with { type: 'json' };
+
+export const origin = process.env.SERVER_ORIGIN || 'https://zhwp-afc-bot.toolforge.org';
+export const userAgent = process.env.REQUEST_USER_AGENT || `zhwp-afc-bot-web/${ packageJson.version } (${ packageJson.repository.replace( /^git+/, '' ) })`;
 
 export function voidFunction() {
 	// noop

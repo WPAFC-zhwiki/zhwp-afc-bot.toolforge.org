@@ -77,7 +77,6 @@ const app = express();
 app.set( 'view engine', 'ejs' );
 
 app.use(
-	timeout,
 	helmet( {
 		contentSecurityPolicy: false, // Toolforge wll add Content-Security-Policy-Report-Only automatically
 		hsts: false, // define in hsts.ts
@@ -97,7 +96,15 @@ app.use(
 			);
 		} );
 		return next();
-	}
+	},
+	( request, response, next ) => {
+		if ( !request.get( 'User-Agent' ) ) {
+			response.status( 403 ).send( '' );
+			return;
+		}
+		next();
+	},
+	timeout
 );
 
 app.use( '/ping', ( request, response, next ) => {
