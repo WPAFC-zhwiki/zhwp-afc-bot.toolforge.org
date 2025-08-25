@@ -28,7 +28,7 @@
 	"packageManager": "pnpm@9.15.9",
 	"dependencies": {
 		"axios": "^0.30.0",
-		"cheerio": "1.0.0-rc.12",
+		"cheerio": "1.1.2",
 		"chokidar": "^3.5.3",
 		"dotenv": "^16.0.1",
 		"ejs": "^3.1.8",
