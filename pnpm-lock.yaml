@@ -98,7 +98,7 @@ importers:
         version: 2.0.4
       '@types/mysql':
         specifier: ^2.15.24
-        version: 2.15.27
+        version: 2.15.28
       '@types/node':
         specifier: ^20.17.10
         version: 20.19.43
@@ -356,8 +356,8 @@ packages:
   '@types/module-alias@2.0.4':
     resolution: {integrity: sha512-5+G/QXO/DvHZw60FjvbDzO4JmlD/nG5m2/vVGt25VN1eeP3w2bCoks1Wa7VuptMPM1TxJdx6RjO70N9Fw0nZPA==}
 
-  '@types/mysql@2.15.27':
-    resolution: {integrity: sha512-YfWiV16IY0OeBfBCk8+hXKmdTKrKlwKN1MNKAPBu5JYxLwBEZl7QzeEpGnlZb3VMGJrrGmB84gXiH+ofs/TezA==}
+  '@types/mysql@2.15.28':
+    resolution: {integrity: sha512-NRNRbmYPZLXO/TIO8N/4b4jG9fS921Di5nsUCsU+tJDgQRhqoI5sBqKc25Wfj/FiJH6S+e3vILZXFwBrYVBqsg==}
 
   '@types/node@14.18.63':
     resolution: {integrity: sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==}
@@ -2830,7 +2830,7 @@ snapshots:
 
   '@types/module-alias@2.0.4': {}
 
-  '@types/mysql@2.15.27':
+  '@types/mysql@2.15.28':
     dependencies:
       '@types/node': 20.19.43
 
